@@ -47,6 +47,7 @@ dependencies:
   http: ^1.6.0
   intl: ^0.20.3
   camera: ^0.12.2
+  camera_android: ^0.10.12
   google_mlkit_pose_detection: ^1.0.0
   google_mlkit_commons: ^1.0.0
 
