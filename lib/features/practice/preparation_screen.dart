@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../recording/recording_studio_screen.dart';
@@ -21,7 +23,9 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
   void initState() {
     super.initState();
     final setup = ref.read(activePracticeSetupProvider);
-    _totalSeconds = setup.preparationSeconds > 0 ? setup.preparationSeconds : 30;
+    _totalSeconds = setup.preparationSeconds > 0
+        ? setup.preparationSeconds
+        : 30;
     _remainingSeconds = _totalSeconds;
 
     _startCountdown();
@@ -44,9 +48,7 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
     _timer?.cancel();
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const RecordingStudioScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const RecordingStudioScreen()),
       );
     }
   }
@@ -66,9 +68,7 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
         : 1.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Persiapan Pitching'),
-      ),
+      appBar: AppBar(title: const Text('Persiapan Pitching')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -139,8 +139,11 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
                       children: [
                         Row(
                           children: const [
-                            Icon(Icons.tips_and_updates_outlined,
-                                color: AppColors.secondary, size: 20),
+                            Icon(
+                              Icons.tips_and_updates_outlined,
+                              color: AppColors.secondary,
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Tips Menyusun Alur Kilat',
@@ -185,12 +188,17 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
                             children: challenge.requiredWords.map((w) {
                               return Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceCard,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                      color: AppColors.secondary.withOpacity(0.4)),
+                                    color: AppColors.secondary.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                  ),
                                 ),
                                 child: Text(
                                   w,
@@ -226,4 +234,3 @@ class _PreparationScreenState extends ConsumerState<PreparationScreen> {
     );
   }
 }
-

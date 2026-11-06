@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -16,9 +17,7 @@ class ProgressScreen extends ConsumerWidget {
     final progressAsync = ref.watch(progressDataProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perkembangan Latihan'),
-      ),
+      appBar: AppBar(title: const Text('Perkembangan Latihan')),
       body: SafeArea(
         child: progressAsync.when(
           loading: () => const Center(
@@ -38,8 +37,7 @@ class ProgressScreen extends ConsumerWidget {
               return EmptyStateView(
                 icon: Icons.insights_rounded,
                 title: 'Data Belum Cukup',
-                message:
-                    'Lakukan setidaknya satu atau dua sesi latihan untuk melihat tren perkembangan skor dan tempo bicaramu di sini.',
+                message: 'Lakukan setidaknya satu atau dua sesi latihan untuk melihat tren perkembangan skor dan tempo bicaramu di sini.',
                 buttonText: 'Mulai Latihan',
                 onAction: () {
                   Navigator.of(context).push(
@@ -64,8 +62,11 @@ class ProgressScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.trending_up_rounded,
-                          color: AppColors.secondary, size: 22),
+                      const Icon(
+                        Icons.trending_up_rounded,
+                        color: AppColors.secondary,
+                        size: 22,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -138,10 +139,7 @@ class ProgressScreen extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
           ),
           const SizedBox(height: 20),
           SizedBox(height: 180, child: child),
@@ -165,16 +163,16 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 25,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: AppColors.surfaceBorder,
-            strokeWidth: 1,
-          ),
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -187,7 +185,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       Formatters.formatDateShort(points[idx].date),
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 10),
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                      ),
                     ),
                   );
                 }
@@ -202,8 +202,10 @@ class ProgressScreen extends ConsumerWidget {
               reservedSize: 30,
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}',
-                style:
-                    const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
               ),
             ),
           ),
@@ -218,7 +220,7 @@ class ProgressScreen extends ConsumerWidget {
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
             ),
           ),
         ],
@@ -241,16 +243,16 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 40,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: AppColors.surfaceBorder,
-            strokeWidth: 1,
-          ),
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -263,7 +265,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       'Sesi ${idx + 1}',
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 10),
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                      ),
                     ),
                   );
                 }
@@ -278,8 +282,10 @@ class ProgressScreen extends ConsumerWidget {
               reservedSize: 32,
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}',
-                style:
-                    const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
               ),
             ),
           ),
@@ -313,16 +319,16 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 5,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: AppColors.surfaceBorder,
-            strokeWidth: 1,
-          ),
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -335,7 +341,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       'Sesi ${idx + 1}',
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 10),
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                      ),
                     ),
                   );
                 }
@@ -350,8 +358,10 @@ class ProgressScreen extends ConsumerWidget {
               reservedSize: 28,
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}%',
-                style:
-                    const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
               ),
             ),
           ),
@@ -370,4 +380,3 @@ class ProgressScreen extends ConsumerWidget {
     );
   }
 }
-

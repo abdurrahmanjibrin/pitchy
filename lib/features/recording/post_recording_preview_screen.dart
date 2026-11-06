@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
+import '../../data/models/body_language_evaluation.dart';
 import '../../services/playback/audio_playback_service.dart';
 import '../processing/processing_screen.dart';
 import 'recording_studio_screen.dart';
@@ -13,11 +16,13 @@ import 'recording_studio_screen.dart';
 class PostRecordingPreviewScreen extends ConsumerStatefulWidget {
   final String audioPath;
   final int actualDurationSeconds;
+  final BodyLanguageEvaluation? bodyLanguageEvaluation;
 
   const PostRecordingPreviewScreen({
     super.key,
     required this.audioPath,
     required this.actualDurationSeconds,
+    this.bodyLanguageEvaluation,
   });
 
   @override
@@ -85,9 +90,7 @@ class _PostRecordingPreviewScreenState
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const RecordingStudioScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const RecordingStudioScreen()),
       );
     }
   }
@@ -102,6 +105,7 @@ class _PostRecordingPreviewScreenState
           builder: (_) => ProcessingScreen(
             audioPath: widget.audioPath,
             actualDurationSeconds: widget.actualDurationSeconds,
+            bodyLanguageEvaluation: widget.bodyLanguageEvaluation,
           ),
         ),
       );
@@ -128,9 +132,7 @@ class _PostRecordingPreviewScreenState
         : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pratinjau Rekaman'),
-      ),
+      appBar: AppBar(title: const Text('Pratinjau Rekaman')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -148,7 +150,7 @@ class _PostRecordingPreviewScreenState
                   border: Border.all(color: AppColors.primary, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2),
                       blurRadius: 20,
                     ),
                   ],
@@ -177,7 +179,39 @@ class _PostRecordingPreviewScreenState
                   fontSize: 13,
                 ),
               ),
-
+              if (widget.bodyLanguageEvaluation != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.videocam_rounded,
+                        color: AppColors.secondary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Bahasa Tubuh AI: ${widget.bodyLanguageEvaluation!.overallScore.toInt()}/100 • Strike Zone ${widget.bodyLanguageEvaluation!.strikeZonePercentage.toInt()}%',
+                        style: const TextStyle(
+                          color: AppColors.secondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 36),
 
               // Audio Player Card
@@ -195,7 +229,8 @@ class _PostRecordingPreviewScreenState
                       children: [
                         Text(
                           Formatters.formatSecondsToMinutesSeconds(
-                              currentPositionSec),
+                            currentPositionSec,
+                          ),
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
@@ -203,7 +238,8 @@ class _PostRecordingPreviewScreenState
                         ),
                         Text(
                           Formatters.formatSecondsToMinutesSeconds(
-                              totalDurationSec),
+                            totalDurationSec,
+                          ),
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
@@ -213,8 +249,9 @@ class _PostRecordingPreviewScreenState
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        thumbShape:
-                            const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 6,
+                        ),
                         trackHeight: 4,
                         activeTrackColor: AppColors.primaryLight,
                         inactiveTrackColor: AppColors.surfaceBorder,

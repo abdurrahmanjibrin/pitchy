@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../data/models/challenge_item.dart';
 
@@ -45,10 +46,13 @@ class ChallengeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -62,9 +66,12 @@ class ChallengeCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.18),
+                  color: AppColors.primary.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -79,9 +86,13 @@ class ChallengeCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: _getDifficultyColor(challenge.difficulty).withOpacity(0.15),
+                      color: _getDifficultyColor(challenge.difficulty)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -136,13 +147,15 @@ class ChallengeCard extends StatelessWidget {
               runSpacing: 8,
               children: challenge.requiredWords.map((word) {
                 return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceCard,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: AppColors.secondary.withOpacity(0.5),
+                      color: AppColors.secondary.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
@@ -184,8 +197,11 @@ class ChallengeCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.people_alt_outlined,
-                          size: 16, color: AppColors.secondary),
+                      const Icon(
+                        Icons.people_alt_outlined,
+                        size: 16,
+                        color: AppColors.secondary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Target Audiens: ${challenge.audienceProfile!['type'] ?? ''}',
@@ -235,4 +251,3 @@ class ChallengeCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 
@@ -19,8 +20,7 @@ class ScoreBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Formatters.getScoreColor(score);
-    final displayScore =
-        score != null ? score!.toStringAsFixed(0) : '-';
+    final displayScore = score != null ? score!.toStringAsFixed(0) : '-';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -30,14 +30,11 @@ class ScoreBadge extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withOpacity(0.12),
-            border: Border.all(
-              color: color.withOpacity(0.8),
-              width: 3,
-            ),
+            color: color.withValues(alpha: 0.12),
+            border: Border.all(color: color.withValues(alpha: 0.8), width: 3),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 blurRadius: 10,
                 spreadRadius: 1,
               ),
@@ -69,4 +66,3 @@ class ScoreBadge extends StatelessWidget {
     );
   }
 }
-

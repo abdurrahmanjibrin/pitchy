@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'body_language_evaluation.dart';
 import 'challenge_evaluation.dart';
 import 'filler_stat.dart';
 
@@ -25,6 +26,7 @@ class PracticeSession {
   final int? pauseCount;
   final double? averagePause;
   final double? deliveryScore;
+  final double? bodyLanguageScore; // Visual / Pose & Gesture Score
   final double? contentScore;
   final double? overallScore;
   final String? aiFeedback;
@@ -33,6 +35,7 @@ class PracticeSession {
 
   // Associated details (lazy or eager loaded)
   final ChallengeEvaluation? evaluation;
+  final BodyLanguageEvaluation? bodyLanguageEvaluation;
   final List<FillerStat> fillerStats;
 
   PracticeSession({
@@ -58,12 +61,14 @@ class PracticeSession {
     this.pauseCount,
     this.averagePause,
     this.deliveryScore,
+    this.bodyLanguageScore,
     this.contentScore,
     this.overallScore,
     this.aiFeedback,
     this.status = 'completed',
     required this.createdAt,
     this.evaluation,
+    this.bodyLanguageEvaluation,
     this.fillerStats = const [],
   });
 
@@ -107,6 +112,10 @@ class PracticeSession {
       'pause_count': pauseCount,
       'average_pause': averagePause,
       'delivery_score': deliveryScore,
+      'body_language_score': bodyLanguageScore,
+      'body_language_eval_json': bodyLanguageEvaluation != null
+          ? jsonEncode(bodyLanguageEvaluation!.toMap())
+          : null,
       'content_score': contentScore,
       'overall_score': overallScore,
       'ai_feedback': aiFeedback,
@@ -136,6 +145,17 @@ class PracticeSession {
         map['audience_profile_json'].toString().isNotEmpty) {
       try {
         parsedAudience = jsonDecode(map['audience_profile_json']);
+      } catch (_) {}
+    }
+
+    BodyLanguageEvaluation? parsedBodyLanguage;
+    if (map['body_language_eval_json'] != null &&
+        map['body_language_eval_json'].toString().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(map['body_language_eval_json']);
+        if (decoded is Map<String, dynamic>) {
+          parsedBodyLanguage = BodyLanguageEvaluation.fromMap(decoded);
+        }
       } catch (_) {}
     }
 
@@ -169,6 +189,8 @@ class PracticeSession {
       pauseCount: (map['pause_count'] as num?)?.toInt(),
       averagePause: (map['average_pause'] as num?)?.toDouble(),
       deliveryScore: (map['delivery_score'] as num?)?.toDouble(),
+      bodyLanguageScore: (map['body_language_score'] as num?)?.toDouble(),
+      bodyLanguageEvaluation: parsedBodyLanguage,
       contentScore: (map['content_score'] as num?)?.toDouble(),
       overallScore: (map['overall_score'] as num?)?.toDouble(),
       aiFeedback: map['ai_feedback']?.toString(),
@@ -190,6 +212,8 @@ class PracticeSession {
     int? pauseCount,
     double? averagePause,
     double? deliveryScore,
+    double? bodyLanguageScore,
+    BodyLanguageEvaluation? bodyLanguageEvaluation,
     double? contentScore,
     double? overallScore,
     String? aiFeedback,
@@ -219,6 +243,9 @@ class PracticeSession {
       pauseCount: pauseCount ?? this.pauseCount,
       averagePause: averagePause ?? this.averagePause,
       deliveryScore: deliveryScore ?? this.deliveryScore,
+      bodyLanguageScore: bodyLanguageScore ?? this.bodyLanguageScore,
+      bodyLanguageEvaluation:
+          bodyLanguageEvaluation ?? this.bodyLanguageEvaluation,
       contentScore: contentScore ?? this.contentScore,
       overallScore: overallScore ?? this.overallScore,
       aiFeedback: aiFeedback ?? this.aiFeedback,

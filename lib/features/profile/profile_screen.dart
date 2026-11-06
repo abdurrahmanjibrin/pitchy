@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../onboarding/onboarding_screen.dart';
@@ -24,8 +25,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     final userRepo = ref.read(userRepositoryProvider);
     _nameController = TextEditingController(text: userRepo.getUserName());
-    _apiKeyController =
-        TextEditingController(text: userRepo.getApiKey() ?? '');
+    _apiKeyController = TextEditingController(text: userRepo.getApiKey() ?? '');
     _useOfflineMock = userRepo.useLocalSttFallback();
   }
 
@@ -164,9 +164,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil & Pengaturan'),
-      ),
+      appBar: AppBar(title: const Text('Profil & Pengaturan')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -197,8 +195,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: TextField(
                           controller: _nameController,
                           decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.person_outline_rounded,
-                                color: AppColors.secondary),
+                            prefixIcon: Icon(
+                              Icons.person_outline_rounded,
+                              color: AppColors.secondary,
+                            ),
                             hintText: 'Nama panggilan',
                           ),
                         ),
@@ -231,8 +231,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.auto_awesome_rounded,
-                          color: AppColors.secondary, size: 20),
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        color: AppColors.secondary,
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Konfigurasi AI Coach & STT',
@@ -258,8 +261,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     controller: _apiKeyController,
                     obscureText: true,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.key_rounded,
-                          color: AppColors.secondary),
+                      prefixIcon: Icon(
+                        Icons.key_rounded,
+                        color: AppColors.secondary,
+                      ),
                       hintText: 'Gemini API Key (Opsional / Override)',
                     ),
                   ),
@@ -274,11 +279,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.secondary),
+                                    strokeWidth: 2,
+                                    color: AppColors.secondary,
+                                  ),
                                 )
-                              : const Icon(Icons.wifi_tethering_rounded,
-                                  size: 18),
+                              : const Icon(
+                                  Icons.wifi_tethering_rounded,
+                                  size: 18,
+                                ),
                           label: const Text('Uji Koneksi'),
                         ),
                       ),
@@ -319,10 +327,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     subtitle: const Text(
                       'Gunakan generator transkrip lokal untuk demo saat tidak ada internet.',
                       style: TextStyle(
-                          color: AppColors.textMuted, fontSize: 11),
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
                     ),
                     value: _useOfflineMock,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) async {
                       setState(() => _useOfflineMock = val);
                       final userRepo = ref.read(userRepositoryProvider);
@@ -347,8 +357,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.privacy_tip_outlined,
-                          color: AppColors.secondary, size: 20),
+                      Icon(
+                        Icons.privacy_tip_outlined,
+                        color: AppColors.secondary,
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Privasi & Penyimpanan Data',
@@ -382,7 +395,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,14 +413,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _clearAllData,
-                    icon: const Icon(Icons.delete_forever_rounded,
-                        color: AppColors.error),
+                    icon: const Icon(
+                      Icons.delete_forever_rounded,
+                      color: AppColors.error,
+                    ),
                     label: const Text(
                       'Hapus Semua Data Sesi Latihan',
                       style: TextStyle(color: AppColors.error),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.error.withOpacity(0.5)),
+                      side: BorderSide(
+                        color: AppColors.error.withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),

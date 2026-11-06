@@ -20,12 +20,22 @@ class LocalDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
     );
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE practice_sessions ADD COLUMN body_language_score REAL');
+      await db.execute(
+          'ALTER TABLE practice_sessions ADD COLUMN body_language_eval_json TEXT');
+    }
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -79,6 +89,8 @@ class LocalDatabase {
         pause_count INTEGER,
         average_pause REAL,
         delivery_score REAL,
+        body_language_score REAL,
+        body_language_eval_json TEXT,
         content_score REAL,
         overall_score REAL,
         ai_feedback TEXT,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 
 class StatCard extends StatelessWidget {
@@ -38,7 +39,7 @@ class StatCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: effectiveColor.withOpacity(0.12),
+                  color: effectiveColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 20, color: effectiveColor),
@@ -77,4 +78,3 @@ class StatCard extends StatelessWidget {
     );
   }
 }
-

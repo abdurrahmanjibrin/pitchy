@@ -11,7 +11,20 @@ Aplikasi mobile berbasis Artificial Intelligence untuk pendamping latihan presen
 - **Random Theme Pitch**: Memberikan tema atau masalah spontan dengan konteks dan tujuan yang jelas.
 - **Audience Scenario Pitch**: Menentukan persona audiens (Investor Modal Ventura, Dosen Penguji, Mahasiswa Baru, Pimpinan Kampus, Calon Konsumen) untuk melatih adaptasi pesan.
 
-### 2. Perekaman Audio & Pratinjau Langsung
+### 2. AI Camera & Body Language Coach (On-Device Vision)
+- **Pelacakan Pose On-Device**: Memanfaatkan Google ML Kit / MediaPipe Pose Detection yang berjalan 100% lokal di perangkat (privasi penuh tanpa mengunggah frame video ke internet).
+- **HUD Panduan "Strike Zone" Real-Time**: Menampilkan kotak panduan interaktif area dada-hingga-pinggang dengan indikator deteksi pergelangan tangan langsung di atas pratinjau kamera.
+- **Analisis 4 Parameter Berdasarkan Riset Komunikasi**:
+  1. **Postur Ekspansif**: Menilai dada terbuka dan bahu tegap (menurunkan kortisol dan memancarkan wibawa) vs membungkuk (*slouching*) atau menyilangkan tangan (*crossed arms*).
+  2. **Gestur Tangan di "Strike Zone"**: Mengukur persentase waktu tangan berada di area persuasif (antara dada dan pinggang) serta mendeteksi tangan tersembunyi atau gerakan terlalu cepat (*jittery/nervous*).
+  3. **Kestabilan Kuda-kuda (Purposeful Anchoring vs Pacing)**: Melacak titik pusat gravitasi tubuh (*Center of Gravity*) untuk membedakan antara berdiri mengakar dengan tegas (*spatial anchoring*) atau mondar-mandir cemas (*nervous pacing*).
+  4. **Kontak Mata & Orientasi Kepala**: Melacak sudut kepala dan posisi tatapan (*head pose estimation*) untuk mendeteksi apakah pembicara sering menunduk membaca catatan.
+- **Arsitektur Penilaian 3 Pilar (Three Pillars Scoring)**:
+  - **Delivery Score** (Vokal, WPM, Kata Pengisi)
+  - **Body Language Score** (Postur, Strike Zone, Kuda-kuda, Tatapan)
+  - **Content Score** (Kejelasan Semantik AI, Struktur Kalimat, Kesesuaian Audiens)
+
+### 3. Perekaman Audio & Pratinjau Langsung
 - Visualisasi gelombang audio langsung (*live dynamic waveform*) berbasis amplitudo mikrofon.
 - Timer waktu nyata (*real-time*) dengan indikator kepatuhan terhadap target durasi.
 - Panel brief tantangan mengambang (*collapsible drawer*) agar pengguna dapat melihat kata wajib saat berbicara.

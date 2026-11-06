@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/models/body_language_evaluation.dart';
 import '../../data/models/practice_session.dart';
 import '../../services/analysis/audio_metric_analyzer.dart';
 import '../result/analysis_result_screen.dart';
@@ -10,11 +12,13 @@ import '../result/analysis_result_screen.dart';
 class ProcessingScreen extends ConsumerStatefulWidget {
   final String audioPath;
   final int actualDurationSeconds;
+  final BodyLanguageEvaluation? bodyLanguageEvaluation;
 
   const ProcessingScreen({
     super.key,
     required this.audioPath,
     required this.actualDurationSeconds,
+    this.bodyLanguageEvaluation,
   });
 
   @override
@@ -105,8 +109,7 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
       // Step 4: AI Content Evaluation
       setState(() {
         _currentStep = 3;
-        _currentStatusMessage =
-            'AI mengevaluasi kejelasan struktur, relevansi, dan bukti transkrip...';
+        _currentStatusMessage = 'AI mengevaluasi kejelasan struktur, relevansi, dan bukti transkrip...';
       });
 
       PracticeSession partialSession = PracticeSession(
@@ -145,31 +148,48 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
           evaluation.coherenceScore != null &&
           evaluation.relevanceScore != null) {
         if (evaluation.audienceFitScore != null) {
-          contentScore = (evaluation.sentenceClarityScore! * 0.35 +
-                  evaluation.coherenceScore! * 0.35 +
-                  evaluation.audienceFitScore! * 0.30)
-              .clamp(0, 100);
+          contentScore =
+              (evaluation.sentenceClarityScore! * 0.35 +
+                      evaluation.coherenceScore! * 0.35 +
+                      evaluation.audienceFitScore! * 0.30)
+                  .clamp(0, 100);
         } else {
-          contentScore = (evaluation.sentenceClarityScore! * 0.50 +
-                  evaluation.coherenceScore! * 0.50)
-              .clamp(0, 100);
+          contentScore =
+              (evaluation.sentenceClarityScore! * 0.50 +
+                      evaluation.coherenceScore! * 0.50)
+                  .clamp(0, 100);
         }
       }
 
-      // Overall Score: weighted combination of Delivery and Content
+      // Overall Score: 3-Pillar Scoring Architecture
+      // Delivery (Vocal/WPM/Filler) + Body Language (Visual/Pose/Gesture) + Content (AI Semantics)
       double overallScore;
-      if (contentScore != null) {
+      final bodyScore = widget.bodyLanguageEvaluation?.overallScore;
+      if (bodyScore != null && contentScore != null) {
+        overallScore = ((metrics.deliveryScore * 0.35) +
+                (bodyScore * 0.35) +
+                (contentScore * 0.30))
+            .clamp(0, 100);
+      } else if (contentScore != null) {
+        overallScore = ((metrics.deliveryScore * 0.40) + (contentScore * 0.60))
+            .clamp(0, 100);
+      } else if (bodyScore != null) {
         overallScore =
-            ((metrics.deliveryScore * 0.40) + (contentScore * 0.60)).clamp(0, 100);
+            ((metrics.deliveryScore * 0.50) + (bodyScore * 0.50)).clamp(0, 100);
       } else {
         overallScore = metrics.deliveryScore;
       }
 
-      final summaryFeedback =
-          evaluation.strengths.isNotEmpty ? evaluation.strengths.first : '';
+      final summaryFeedback = evaluation.strengths.isNotEmpty
+          ? evaluation.strengths.first
+          : '';
 
       final completeSession = partialSession.copyWith(
         deliveryScore: double.parse(metrics.deliveryScore.toStringAsFixed(1)),
+        bodyLanguageScore: bodyScore != null
+            ? double.parse(bodyScore.toStringAsFixed(1))
+            : null,
+        bodyLanguageEvaluation: widget.bodyLanguageEvaluation,
         contentScore: contentScore != null
             ? double.parse(contentScore.toStringAsFixed(1))
             : null,
@@ -236,7 +256,7 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
                   border: Border.all(color: AppColors.primary, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 28,
                       spreadRadius: 3,
                     ),
@@ -244,8 +264,11 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
                 ),
                 child: Center(
                   child: _errorMessage != null
-                      ? const Icon(Icons.error_outline_rounded,
-                          size: 44, color: AppColors.error)
+                      ? const Icon(
+                          Icons.error_outline_rounded,
+                          size: 44,
+                          color: AppColors.error,
+                        )
                       : const SizedBox(
                           width: 40,
                           height: 40,
@@ -294,7 +317,8 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
                 child: Column(
                   children: List.generate(_stepTitles.length, (index) {
                     final isDone = _currentStep > index;
-                    final isCurrent = _currentStep == index && _errorMessage == null;
+                    final isCurrent =
+                        _currentStep == index && _errorMessage == null;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -304,14 +328,14 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
                             isDone
                                 ? Icons.check_circle_rounded
                                 : (isCurrent
-                                    ? Icons.radio_button_checked_rounded
-                                    : Icons.radio_button_off_rounded),
+                                      ? Icons.radio_button_checked_rounded
+                                      : Icons.radio_button_off_rounded),
                             size: 18,
                             color: isDone
                                 ? AppColors.success
                                 : (isCurrent
-                                    ? AppColors.secondary
-                                    : AppColors.textMuted),
+                                      ? AppColors.secondary
+                                      : AppColors.textMuted),
                           ),
                           const SizedBox(width: 12),
                           Expanded(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -87,7 +88,7 @@ class DashboardScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: AppColors.primary.withValues(alpha: 0.3),
                         blurRadius: 18,
                         offset: const Offset(0, 6),
                       ),
@@ -101,9 +102,11 @@ class DashboardScreen extends ConsumerWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
+                              color: Colors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
@@ -115,8 +118,11 @@ class DashboardScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          const Icon(Icons.auto_awesome_rounded,
-                              color: AppColors.secondaryLight, size: 20),
+                          const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: AppColors.secondaryLight,
+                            size: 20,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 14),
@@ -133,7 +139,7 @@ class DashboardScreen extends ConsumerWidget {
                       Text(
                         'Pilih kata wajib acak, tema spontan, atau sesuaikan gaya bicara dengan profil audiens.',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -162,21 +168,24 @@ class DashboardScreen extends ConsumerWidget {
                           OutlinedButton(
                             onPressed: () async {
                               // Quick Challenge: pick random challenge directly
-                              final challengeService =
-                                  ref.read(challengeServiceProvider);
+                              final challengeService = ref.read(
+                                challengeServiceProvider,
+                              );
                               final item = await challengeService
                                   .getRandomChallenge(type: 'random_words');
 
                               ref
                                   .read(activePracticeSetupProvider.notifier)
-                                  .setSetup(ActivePracticeSetup(
-                                title: 'Tantangan Kata Cepat',
-                                mode: 'challenge',
-                                challengeType: 'random_words',
-                                selectedChallenge: item,
-                                preparationSeconds: 30,
-                                targetDuration: item.suggestedDuration,
-                              ));
+                                  .setSetup(
+                                    ActivePracticeSetup(
+                                      title: 'Tantangan Kata Cepat',
+                                      mode: 'challenge',
+                                      challengeType: 'random_words',
+                                      selectedChallenge: item,
+                                      preparationSeconds: 30,
+                                      targetDuration: item.suggestedDuration,
+                                    ),
+                                  );
 
                               if (context.mounted) {
                                 Navigator.of(context).push(
@@ -190,7 +199,7 @@ class DashboardScreen extends ConsumerWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
                               side: BorderSide(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                               ),
                             ),
                             child: const Text('Tantangan Cepat'),
@@ -217,7 +226,9 @@ class DashboardScreen extends ConsumerWidget {
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24.0),
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                   error: (err, stack) => Container(
@@ -235,8 +246,9 @@ class DashboardScreen extends ConsumerWidget {
                     final avgDisplay = stats.totalSessions > 0
                         ? stats.averageScore.toStringAsFixed(0)
                         : '-';
-                    final durationDisplay =
-                        Formatters.formatDurationHuman(stats.totalPracticeSeconds);
+                    final durationDisplay = Formatters.formatDurationHuman(
+                      stats.totalPracticeSeconds,
+                    );
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,8 +316,9 @@ class DashboardScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(16),
-                                border:
-                                    Border.all(color: AppColors.surfaceBorder),
+                                border: Border.all(
+                                  color: AppColors.surfaceBorder,
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -356,8 +369,9 @@ class DashboardScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border:
-                                  Border.all(color: AppColors.surfaceBorder),
+                              border: Border.all(
+                                color: AppColors.surfaceBorder,
+                              ),
                             ),
                             child: Row(
                               children: [

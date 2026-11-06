@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/constants/app_constants.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
@@ -17,8 +18,9 @@ class PracticeSetupScreen extends ConsumerStatefulWidget {
 
 class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController =
-      TextEditingController(text: 'Latihan Pitching Mandiri');
+  final _titleController = TextEditingController(
+    text: 'Latihan Pitching Mandiri',
+  );
   final _topicController = TextEditingController();
 
   String _mode = 'challenge'; // 'free', 'timed', 'challenge'
@@ -26,7 +28,7 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
       'random_words'; // 'random_words', 'random_theme', 'audience_scenario'
   int _preparationSeconds = 30;
   int _targetDurationSeconds = 120; // 2 min
-  String _recordingType = 'audio';
+  String _recordingType = 'video'; // 'video' (with body language), 'audio'
 
   @override
   void dispose() {
@@ -47,18 +49,22 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
       );
     }
 
-    ref.read(activePracticeSetupProvider.notifier).setSetup(ActivePracticeSetup(
-      title: _titleController.text.trim(),
-      topic: _topicController.text.trim().isNotEmpty
-          ? _topicController.text.trim()
-          : null,
-      mode: _mode,
-      challengeType: _mode == 'challenge' ? _challengeType : null,
-      selectedChallenge: selectedChallenge,
-      preparationSeconds: _preparationSeconds,
-      targetDuration: _targetDurationSeconds,
-      recordingType: _recordingType,
-    ));
+    ref
+        .read(activePracticeSetupProvider.notifier)
+        .setSetup(
+          ActivePracticeSetup(
+            title: _titleController.text.trim(),
+            topic: _topicController.text.trim().isNotEmpty
+                ? _topicController.text.trim()
+                : null,
+            mode: _mode,
+            challengeType: _mode == 'challenge' ? _challengeType : null,
+            selectedChallenge: selectedChallenge,
+            preparationSeconds: _preparationSeconds,
+            targetDuration: _targetDurationSeconds,
+            recordingType: _recordingType,
+          ),
+        );
 
     if (!mounted) return;
 
@@ -69,20 +75,15 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
         ),
       );
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const PreparationScreen(),
-        ),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const PreparationScreen()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pengaturan Latihan'),
-      ),
+      appBar: AppBar(title: const Text('Pengaturan Latihan')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -112,7 +113,10 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                 },
                 decoration: const InputDecoration(
                   hintText: 'Contoh: Pitching Startup Inovasi',
-                  prefixIcon: Icon(Icons.title_rounded, color: AppColors.secondary),
+                  prefixIcon: Icon(
+                    Icons.title_rounded,
+                    color: AppColors.secondary,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -131,8 +135,10 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                 controller: _topicController,
                 decoration: const InputDecoration(
                   hintText: 'Contoh: Pengelolaan sampah cerdas di fakultas',
-                  prefixIcon:
-                      Icon(Icons.category_outlined, color: AppColors.secondary),
+                  prefixIcon: Icon(
+                    Icons.category_outlined,
+                    color: AppColors.secondary,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -258,11 +264,68 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                       child: _buildChoiceChip(
                         label: '$min menit',
                         isSelected: _targetDurationSeconds == sec,
-                        onTap: () => setState(() => _targetDurationSeconds = sec),
+                        onTap: () =>
+                            setState(() => _targetDurationSeconds = sec),
                       ),
                     ),
                   );
                 }).toList(),
+              ),
+              const SizedBox(height: 24),
+
+              // Recording Format (Audio vs Video + Body Language)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Format Sesi Rekaman',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'AI Vision On-Device',
+                      style: TextStyle(
+                        color: AppColors.secondary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFormatCard(
+                      type: 'video',
+                      title: 'Video + Kamera AI',
+                      subtitle: 'Analisis postur, gestur, kuda-kuda & tatapan',
+                      icon: Icons.videocam_rounded,
+                      isRecommended: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildFormatCard(
+                      type: 'audio',
+                      title: 'Audio Saja',
+                      subtitle: 'Fokus vokal, WPM & kata filler',
+                      icon: Icons.mic_rounded,
+                      isRecommended: false,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 32),
 
@@ -270,9 +333,11 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
               ElevatedButton.icon(
                 onPressed: _onProceed,
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text(_mode == 'challenge'
-                    ? 'Buka Brief Tantangan'
-                    : 'Mulai Persiapan'),
+                label: Text(
+                  _mode == 'challenge'
+                      ? 'Buka Brief Tantangan'
+                      : 'Mulai Persiapan',
+                ),
               ),
               const SizedBox(height: 24),
             ],
@@ -294,7 +359,9 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.surface,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
@@ -309,7 +376,9 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? AppColors.secondary : AppColors.textSecondary,
+                color: isSelected
+                    ? AppColors.secondary
+                    : AppColors.textSecondary,
               ),
               const SizedBox(width: 6),
             ],
@@ -354,7 +423,7 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.2)
+                    ? AppColors.primary.withValues(alpha: 0.2)
                     : AppColors.surfaceCard,
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -389,13 +458,116 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                 ],
               ),
             ),
-            Radio<String>(
-              value: type,
-              groupValue: _challengeType,
-              activeColor: AppColors.primary,
-              onChanged: (val) {
-                if (val != null) setState(() => _challengeType = val);
-              },
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormatCard({
+    required String type,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isRecommended,
+  }) {
+    final isSelected = _recordingType == type;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => setState(() => _recordingType = type),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.15)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary.withValues(alpha: 0.25)
+                        : AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color:
+                        isSelected ? AppColors.secondary : AppColors.textMuted,
+                  ),
+                ),
+                if (isRecommended)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'AI Coach',
+                      style: TextStyle(
+                        color: AppColors.accent,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                height: 1.25,
+              ),
             ),
           ],
         ),

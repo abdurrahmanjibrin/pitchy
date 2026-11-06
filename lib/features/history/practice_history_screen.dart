@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
@@ -18,9 +19,7 @@ class PracticeHistoryScreen extends ConsumerWidget {
     final filter = ref.watch(historyFilterProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Riwayat Latihan'),
-      ),
+      appBar: AppBar(title: const Text('Riwayat Latihan')),
       body: SafeArea(
         child: Column(
           children: [
@@ -32,10 +31,17 @@ class PracticeHistoryScreen extends ConsumerWidget {
                 children: [
                   _buildFilterChip(
                     label: 'Semua',
-                    isSelected: filter.challengeType == 'all' && filter.mode == 'all',
+                    isSelected:
+                        filter.challengeType == 'all' && filter.mode == 'all',
                     onTap: () {
-                      ref.read(historyFilterProvider.notifier).setFilter(
-                          const HistoryFilterState(mode: 'all', challengeType: 'all'));
+                      ref
+                          .read(historyFilterProvider.notifier)
+                          .setFilter(
+                            const HistoryFilterState(
+                              mode: 'all',
+                              challengeType: 'all',
+                            ),
+                          );
                     },
                   ),
                   const SizedBox(width: 8),
@@ -43,9 +49,14 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     label: 'Random Words',
                     isSelected: filter.challengeType == 'random_words',
                     onTap: () {
-                      ref.read(historyFilterProvider.notifier).setFilter(
-                          const HistoryFilterState(
-                              mode: 'challenge', challengeType: 'random_words'));
+                      ref
+                          .read(historyFilterProvider.notifier)
+                          .setFilter(
+                            const HistoryFilterState(
+                              mode: 'challenge',
+                              challengeType: 'random_words',
+                            ),
+                          );
                     },
                   ),
                   const SizedBox(width: 8),
@@ -53,9 +64,14 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     label: 'Random Theme',
                     isSelected: filter.challengeType == 'random_theme',
                     onTap: () {
-                      ref.read(historyFilterProvider.notifier).setFilter(
-                          const HistoryFilterState(
-                              mode: 'challenge', challengeType: 'random_theme'));
+                      ref
+                          .read(historyFilterProvider.notifier)
+                          .setFilter(
+                            const HistoryFilterState(
+                              mode: 'challenge',
+                              challengeType: 'random_theme',
+                            ),
+                          );
                     },
                   ),
                   const SizedBox(width: 8),
@@ -63,10 +79,14 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     label: 'Audience Scenario',
                     isSelected: filter.challengeType == 'audience_scenario',
                     onTap: () {
-                      ref.read(historyFilterProvider.notifier).setFilter(
-                          const HistoryFilterState(
+                      ref
+                          .read(historyFilterProvider.notifier)
+                          .setFilter(
+                            const HistoryFilterState(
                               mode: 'challenge',
-                              challengeType: 'audience_scenario'));
+                              challengeType: 'audience_scenario',
+                            ),
+                          );
                     },
                   ),
                   const SizedBox(width: 8),
@@ -74,8 +94,14 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     label: 'Latihan Bebas',
                     isSelected: filter.mode == 'free',
                     onTap: () {
-                      ref.read(historyFilterProvider.notifier).setFilter(
-                          const HistoryFilterState(mode: 'free', challengeType: 'all'));
+                      ref
+                          .read(historyFilterProvider.notifier)
+                          .setFilter(
+                            const HistoryFilterState(
+                              mode: 'free',
+                              challengeType: 'all',
+                            ),
+                          );
                     },
                   ),
                 ],
@@ -102,8 +128,7 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     return EmptyStateView(
                       icon: Icons.history_rounded,
                       title: 'Belum Ada Riwayat',
-                      message:
-                          'Sesi latihan yang kamu simpan akan tampil di sini untuk memantau peningkatan berbicara.',
+                      message: 'Sesi latihan yang kamu simpan akan tampil di sini untuk memantau peningkatan berbicara.',
                       buttonText: 'Mulai Latihan',
                       onAction: () {
                         Navigator.of(context).push(
@@ -116,9 +141,12 @@ class PracticeHistoryScreen extends ConsumerWidget {
                   }
 
                   return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     itemCount: sessions.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = sessions[index];
 
@@ -132,8 +160,11 @@ class PracticeHistoryScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           alignment: Alignment.centerRight,
-                          child: const Icon(Icons.delete_outline_rounded,
-                              color: Colors.white, size: 28),
+                          child: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                         confirmDismiss: (direction) async {
                           return await showDialog<bool>(
@@ -182,8 +213,9 @@ class PracticeHistoryScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border:
-                                  Border.all(color: AppColors.surfaceBorder),
+                              border: Border.all(
+                                color: AppColors.surfaceBorder,
+                              ),
                             ),
                             child: Row(
                               children: [
@@ -195,7 +227,8 @@ class PracticeHistoryScreen extends ConsumerWidget {
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.title,

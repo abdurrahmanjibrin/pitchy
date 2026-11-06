@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../dashboard/main_navigation_screen.dart';
@@ -13,28 +14,26 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Mahasiswa');
+  final TextEditingController _nameController = TextEditingController(
+    text: 'Mahasiswa',
+  );
   int _currentPage = 0;
 
   final List<Map<String, dynamic>> _pages = [
     {
       'icon': Icons.bolt_rounded,
       'title': 'Latih Pitching Spontan',
-      'desc':
-          'Hadapi tantangan unik: menyisipkan kata wajib secara alami, tema acak mendadak, atau skenario audiens spesifik.',
+      'desc': 'Hadapi tantangan unik: menyisipkan kata wajib secara alami, tema acak mendadak, atau skenario audiens spesifik.',
     },
     {
       'icon': Icons.graphic_eq_rounded,
       'title': 'Metrik Berbicara Terukur',
-      'desc':
-          'Evaluasi tempo bicara (Words Per Minute), deteksi kata pengisi (filler words) seperti "eee" dan "anu", serta durasi bicara.',
+      'desc': 'Evaluasi tempo bicara (Words Per Minute), deteksi kata pengisi (filler words) seperti "eee" dan "anu", serta durasi bicara.',
     },
     {
       'icon': Icons.psychology_rounded,
       'title': 'AI Coach Berbasis Bukti',
-      'desc':
-          'Dapatkan feedback semantik atas kejelasan susunan kalimat, kelogisan alur, relevansi ide, dan kecocokan pesan bagi audiens.',
+      'desc': 'Dapatkan feedback semantik atas kejelasan susunan kalimat, kelogisan alur, relevansi ide, dan kecocokan pesan bagi audiens.',
     },
   ];
 
@@ -75,7 +74,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -133,12 +132,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             color: AppColors.surface,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.primary.withOpacity(0.4),
+                              color: AppColors.primary.withValues(alpha: 0.4),
                               width: 2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.15),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.15,
+                                ),
                                 blurRadius: 24,
                                 spreadRadius: 4,
                               ),
@@ -189,8 +190,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             controller: _nameController,
                             decoration: const InputDecoration(
                               hintText: 'Contoh: Budi / Siti',
-                              prefixIcon: Icon(Icons.person_outline_rounded,
-                                  color: AppColors.secondary),
+                              prefixIcon: Icon(
+                                Icons.person_outline_rounded,
+                                color: AppColors.secondary,
+                              ),
                             ),
                           ),
                         ],
@@ -243,4 +246,3 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/challenge_item.dart';
@@ -36,8 +37,9 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
 
     // Update active practice state
     final currentSetup = ref.read(activePracticeSetupProvider);
-    ref.read(activePracticeSetupProvider.notifier).setSetup(
-        currentSetup.copyWith(selectedChallenge: newItem));
+    ref
+        .read(activePracticeSetupProvider.notifier)
+        .setSetup(currentSetup.copyWith(selectedChallenge: newItem));
 
     setState(() {
       _currentChallenge = newItem;
@@ -47,14 +49,12 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
 
   void _startPreparation() {
     final currentSetup = ref.read(activePracticeSetupProvider);
-    ref.read(activePracticeSetupProvider.notifier).setSetup(
-        currentSetup.copyWith(selectedChallenge: _currentChallenge));
+    ref
+        .read(activePracticeSetupProvider.notifier)
+        .setSetup(currentSetup.copyWith(selectedChallenge: _currentChallenge));
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const PreparationScreen(),
-      ),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const PreparationScreen()));
   }
 
   @override
@@ -62,9 +62,7 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
     final setup = ref.watch(activePracticeSetupProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Brief Tantangan'),
-      ),
+      appBar: AppBar(title: const Text('Brief Tantangan')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -77,18 +75,23 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.infoBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppColors.info.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: AppColors.info, size: 20),
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.info,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Tantangan akan dikunci setelah perekaman dimulai. Kamu dapat melihat brief ini kembali saat rekaman berlangsung.',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 12,
                           height: 1.35,
                         ),
@@ -109,7 +112,8 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                           child: Padding(
                             padding: EdgeInsets.all(32.0),
                             child: CircularProgressIndicator(
-                                color: AppColors.primary),
+                              color: AppColors.primary,
+                            ),
                           ),
                         )
                       else
@@ -139,7 +143,8 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                             _buildSummaryRow(
                               icon: Icons.timer_outlined,
                               label: 'Target Durasi Pitch',
-                              value: '${(setup.targetDuration ?? 120) ~/ 60} menit',
+                              value:
+                                  '${(setup.targetDuration ?? 120) ~/ 60} menit',
                             ),
                             const Divider(height: 20),
                             _buildSummaryRow(
