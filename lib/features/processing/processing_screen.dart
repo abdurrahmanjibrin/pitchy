@@ -33,7 +33,9 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
   int _currentStep = 0;
   String _currentStatusMessage = 'Menyiapkan berkas rekaman...';
   String? _errorMessage;
+  String? _rawErrorDetails;
   bool _canRetry = false;
+  bool _showErrorDetails = false;
 
   final List<String> _stepTitles = [
     'Validasi Audio Rekaman',
@@ -54,7 +56,9 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
       _currentStep = 0;
       _currentStatusMessage = 'Membaca dan memverifikasi berkas suara...';
       _errorMessage = null;
+      _rawErrorDetails = null;
       _canRetry = false;
+      _showErrorDetails = false;
     });
 
     final setup = ref.read(activePracticeSetupProvider);
@@ -80,16 +84,17 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
           requiredWords: setup.selectedChallenge?.requiredWords ?? [],
         );
       } catch (e) {
-        // Check if user wants offline mock fallback or report error
         final userRepo = ref.read(userRepositoryProvider);
         if (userRepo.useLocalSttFallback()) {
           transcript = await ref
               .read(sttServiceProvider)
               .transcribeAudio(audioFilePath: widget.audioPath);
         } else {
+          final errStr = e.toString().replaceAll("Exception: ", "");
           setState(() {
             _errorMessage =
-                'Gagal melakukan transkripsi: ${e.toString().replaceAll("Exception: ", "")}\n\nPastikan koneksi internet stabil atau aktifkan Mode Offline di Profil & Pengaturan.';
+                'Koneksi transkripsi AI terhambat. Pastikan kuota atau API key aktif, atau gunakan mode simulasi offline.';
+            _rawErrorDetails = errStr;
             _canRetry = true;
           });
           return;
@@ -219,11 +224,19 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Terjadi kesalahan pemrosesan: $e';
+          _errorMessage =
+              'Terjadi kendala pemrosesan. Silakan coba lagi atau gunakan simulasi offline.';
+          _rawErrorDetails = e.toString();
           _canRetry = true;
         });
       }
     }
+  }
+
+  Future<void> _useOfflineAndRetry() async {
+    final userRepo = ref.read(userRepositoryProvider);
+    await userRepo.setUseLocalSttFallback(true);
+    _executePipeline();
   }
 
   @override
@@ -233,144 +246,238 @@ class _ProcessingScreenState extends ConsumerState<ProcessingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Top Duolingo Progress Bar
-              DuoProgressBar(
-                progress: _errorMessage != null ? 0.2 : progress,
-                progressColor: _errorMessage != null ? AppColors.red : AppColors.green,
-                height: 12,
-              ),
-              const Spacer(),
-
-              // Animated Mascot
-              DuoMascotAvatar(
-                size: 96,
-                speechText: _errorMessage != null
-                    ? 'Oops! Ada sedikit kendala saat memproses.'
-                    : 'Pitchy sedang mendengarkan dan menganalisis bicaramu!',
-              ),
-              const SizedBox(height: 24),
-
-              Text(
-                _errorMessage != null
-                    ? 'Pemrosesan Terkendala'
-                    : 'Menganalisis Pitching...',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage ?? _currentStatusMessage,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _errorMessage != null
-                      ? AppColors.red
-                      : AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  height: 1.4,
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Step Progress List inside a DuoCard
-              DuoCard(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
                 child: Column(
-                  children: List.generate(_stepTitles.length, (index) {
-                    final isDone = _currentStep > index;
-                    final isCurrent =
-                        _currentStep == index && _errorMessage == null;
-
-                    Color circleColor;
-                    Widget iconWidget;
-
-                    if (isDone) {
-                      circleColor = AppColors.green;
-                      iconWidget = const Icon(
-                        Icons.check,
-                        size: 14,
-                        color: Colors.white,
-                      );
-                    } else if (isCurrent) {
-                      circleColor = AppColors.blue;
-                      iconWidget = const SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top Full-width Duolingo Progress Bar
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        DuoProgressBar(
+                          value: _errorMessage != null ? 0.2 : progress,
+                          fillColor:
+                              _errorMessage != null ? AppColors.red : AppColors.green,
+                          height: 12,
                         ),
-                      );
-                    } else {
-                      circleColor = AppColors.border;
-                      iconWidget = const SizedBox.shrink();
-                    }
+                        const SizedBox(height: 24),
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: circleColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(child: iconWidget),
+                        // Animated Mascot
+                        Center(
+                          child: DuoMascotAvatar(
+                            size: 92,
+                            speechText: _errorMessage != null
+                                ? 'Oops! Ada kendala jaringan saat memproses.'
+                                : 'Pitchy sedang mendengarkan dan menganalisis bicaramu!',
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _stepTitles[index],
-                              style: TextStyle(
-                                color: isDone || isCurrent
-                                    ? AppColors.textPrimary
-                                    : AppColors.textMuted,
-                                fontSize: 13,
-                                fontWeight: isCurrent
-                                    ? FontWeight.w900
-                                    : (isDone
-                                        ? FontWeight.bold
-                                        : FontWeight.normal),
+                        ),
+                        const SizedBox(height: 20),
+
+                        Text(
+                          _errorMessage != null
+                              ? 'Pemrosesan Terkendala'
+                              : 'Menganalisis Pitching...',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        Text(
+                          _errorMessage ?? _currentStatusMessage,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: _errorMessage != null
+                                ? AppColors.orangeDark
+                                : AppColors.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            height: 1.4,
+                          ),
+                        ),
+
+                        // Technical Error Details (Expandable)
+                        if (_rawErrorDetails != null) ...[
+                          const SizedBox(height: 10),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {
+                              setState(() {
+                                _showErrorDetails = !_showErrorDetails;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _showErrorDetails
+                                        ? Icons.expand_less_rounded
+                                        : Icons.expand_more_rounded,
+                                    color: AppColors.textMuted,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _showErrorDetails
+                                        ? 'Sembunyikan Pesan Teknis'
+                                        : 'Lihat Pesan Teknis Server',
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                          if (_showErrorDetails) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Text(
+                                _rawErrorDetails!,
+                                style: const TextStyle(
+                                  color: AppColors.red,
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Step Progress List inside a DuoCard
+                    DuoCard(
+                      child: Column(
+                        children: List.generate(_stepTitles.length, (index) {
+                          final isDone = _currentStep > index;
+                          final isCurrent =
+                              _currentStep == index && _errorMessage == null;
+
+                          Color circleColor;
+                          Widget iconWidget;
+
+                          if (isDone) {
+                            circleColor = AppColors.green;
+                            iconWidget = const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.white,
+                            );
+                          } else if (isCurrent) {
+                            circleColor = AppColors.blue;
+                            iconWidget = const SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            );
+                          } else {
+                            circleColor = AppColors.border;
+                            iconWidget = const SizedBox.shrink();
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: circleColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(child: iconWidget),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _stepTitles[index],
+                                    style: TextStyle(
+                                      color: isDone || isCurrent
+                                          ? AppColors.textPrimary
+                                          : AppColors.textMuted,
+                                      fontSize: 13,
+                                      fontWeight: isCurrent
+                                          ? FontWeight.w900
+                                          : (isDone
+                                              ? FontWeight.bold
+                                              : FontWeight.normal),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Action Buttons Row / Column
+                    if (_canRetry) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DuoButton(
+                            text: 'COBA LAGI DENGAN AI',
+                            icon: Icons.refresh_rounded,
+                            variant: DuoButtonVariant.green,
+                            onPressed: _executePipeline,
+                          ),
+                          const SizedBox(height: 10),
+                          DuoButton(
+                            text: 'GUNAKAN SIMULASI OFFLINE',
+                            icon: Icons.offline_bolt_rounded,
+                            variant: DuoButtonVariant.yellow,
+                            onPressed: _useOfflineAndRetry,
+                          ),
+                          const SizedBox(height: 10),
+                          DuoButton(
+                            text: 'KEMBALI KE PRATINJAU',
+                            variant: DuoButtonVariant.white,
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
                         ],
                       ),
-                    );
-                  }),
+                    ] else ...[
+                      const SizedBox(height: 40),
+                    ],
+                  ],
                 ),
               ),
-
-              const Spacer(),
-
-              if (_canRetry) ...[
-                DuoButton(
-                  text: 'COBA LAGI',
-                  icon: Icons.refresh_rounded,
-                  variant: DuoButtonVariant.green,
-                  onPressed: _executePipeline,
-                ),
-                const SizedBox(height: 10),
-                DuoButton(
-                  text: 'KEMBALI KE PRATINJAU',
-                  variant: DuoButtonVariant.white,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

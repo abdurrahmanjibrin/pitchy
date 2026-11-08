@@ -81,7 +81,7 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         mascotWidget,
-        const SizedBox(width: 14),
+        const SizedBox(width: 6),
         Expanded(
           child: _buildSpeechBubble(),
         ),
@@ -90,17 +90,19 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
   }
 
   Widget _buildMascotBody() {
+    final s = widget.size;
+
     return Container(
-      width: widget.size,
-      height: widget.size,
+      width: s,
+      height: s,
       decoration: BoxDecoration(
         color: AppColors.green,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.greenDark, width: 3.5),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.greenDark.withValues(alpha: 0.35),
-            offset: const Offset(0, 4),
+            color: AppColors.greenDark,
+            offset: Offset(0, 4),
             blurRadius: 0,
           ),
         ],
@@ -108,52 +110,84 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Belly patch
+          // Belly patch (lighter green curved tummy)
           Positioned(
-            bottom: 4,
+            bottom: 0,
             child: Container(
-              width: widget.size * 0.58,
-              height: widget.size * 0.42,
+              width: s * 0.62,
+              height: s * 0.40,
               decoration: const BoxDecoration(
                 color: Color(0xFF89E219),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
             ),
           ),
+          // Cute rosy cheeks
+          Positioned(
+            top: s * 0.44,
+            left: s * 0.08,
+            child: Container(
+              width: s * 0.16,
+              height: s * 0.09,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF9EA5).withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          Positioned(
+            top: s * 0.44,
+            right: s * 0.08,
+            child: Container(
+              width: s * 0.16,
+              height: s * 0.09,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF9EA5).withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
           // Eyes
           Positioned(
-            top: widget.size * 0.22,
+            top: s * 0.18,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildEye(),
-                SizedBox(width: widget.size * 0.08),
+                SizedBox(width: s * 0.06),
                 _buildEye(),
               ],
             ),
           ),
           // Beak
           Positioned(
-            top: widget.size * 0.44,
+            top: s * 0.42,
             child: Container(
-              width: widget.size * 0.26,
-              height: widget.size * 0.18,
+              width: s * 0.24,
+              height: s * 0.16,
               decoration: BoxDecoration(
                 color: AppColors.orange,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppColors.orangeDark, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: AppColors.orangeDark,
+                    offset: Offset(0, 2),
+                    blurRadius: 0,
+                  ),
+                ],
               ),
             ),
           ),
-          // Mic headset or tie
+          // Mic badge
           Positioned(
-            bottom: 2,
+            bottom: 3,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
                 color: AppColors.blue,
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.blueDark, width: 1),
+                border: Border.all(color: AppColors.blueDark, width: 1.2),
               ),
               child: const Icon(
                 Icons.mic,
@@ -168,7 +202,7 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
   }
 
   Widget _buildEye() {
-    final eyeSize = widget.size * 0.28;
+    final eyeSize = widget.size * 0.30;
     return Container(
       width: eyeSize,
       height: eyeSize,
@@ -179,8 +213,8 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
       ),
       child: Center(
         child: Container(
-          width: eyeSize * 0.5,
-          height: eyeSize * 0.5,
+          width: eyeSize * 0.58,
+          height: eyeSize * 0.58,
           decoration: const BoxDecoration(
             color: Color(0xFF1E293B),
             shape: BoxShape.circle,
@@ -188,8 +222,8 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
           child: Align(
             alignment: const Alignment(0.4, -0.4),
             child: Container(
-              width: eyeSize * 0.18,
-              height: eyeSize * 0.18,
+              width: eyeSize * 0.22,
+              height: eyeSize * 0.22,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
@@ -202,29 +236,70 @@ class _DuoMascotAvatarState extends State<DuoMascotAvatar>
   }
 
   Widget _buildSpeechBubble() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 2.0),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0xFFE5E5E5),
-            offset: Offset(0, 3),
-            blurRadius: 0,
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.centerLeft,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E5E5), width: 2.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xFFE5E5E5),
+                offset: Offset(0, 3),
+                blurRadius: 0,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Text(
-        widget.speechText ?? '',
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          height: 1.35,
+          child: Text(
+            widget.speechText ?? '',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              height: 1.35,
+            ),
+          ),
         ),
-      ),
+        // Triangle tail pointer
+        Positioned(
+          left: 0,
+          child: CustomPaint(
+            size: const Size(9, 12),
+            painter: _BubbleTailPainter(),
+          ),
+        ),
+      ],
     );
   }
+}
+
+class _BubbleTailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width, 0)
+      ..lineTo(0, size.height / 2)
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final borderPaint = Paint()
+      ..color = const Color(0xFFE5E5E5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawPath(path, paint);
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

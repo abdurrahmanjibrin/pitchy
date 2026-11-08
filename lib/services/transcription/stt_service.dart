@@ -50,10 +50,6 @@ class GeminiSttService implements SttService {
 
     final base64Audio = base64Encode(bytes);
 
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey',
-    );
-
     final requestBody = jsonEncode({
       'contents': [
         {
@@ -79,43 +75,67 @@ class GeminiSttService implements SttService {
       }
     });
 
-    final response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: requestBody,
-        )
-        .timeout(
-          const Duration(seconds: 45),
-          onTimeout: () => throw Exception(
-              'Waktu koneksi transkripsi habis (timeout). Periksa jaringan internet Anda.'),
-        );
+    final modelCandidates = [
+      'gemini-3.8-flash',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+    ];
 
-    if (response.statusCode != 200) {
-      final errorBody = response.body;
-      throw Exception(
-          'Gagal melakukan transkripsi (Status ${response.statusCode}): $errorBody');
+    http.Response? lastResponse;
+    String? lastErrorMessage;
+
+    for (final model in modelCandidates) {
+      final url = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+      );
+
+      try {
+        final response = await http
+            .post(
+              url,
+              headers: {'Content-Type': 'application/json'},
+              body: requestBody,
+            )
+            .timeout(const Duration(seconds: 40));
+
+        if (response.statusCode == 200) {
+          final jsonResp = jsonDecode(response.body);
+          final candidates = jsonResp['candidates'] as List?;
+          if (candidates != null && candidates.isNotEmpty) {
+            final parts = candidates[0]['content']?['parts'] as List?;
+            if (parts != null && parts.isNotEmpty) {
+              final text = parts[0]['text'] as String?;
+              if (text != null && text.trim().isNotEmpty) {
+                return text.trim();
+              }
+            }
+          }
+        }
+
+        lastResponse = response;
+        try {
+          final errJson = jsonDecode(response.body);
+          final msg = errJson['error']?['message'] as String?;
+          if (msg != null && msg.isNotEmpty) {
+            lastErrorMessage = msg;
+          }
+        } catch (_) {}
+
+        // If not a 404 (model not found), break so we don't spam other models on auth/quota error
+        if (response.statusCode != 404) {
+          break;
+        }
+      } catch (e) {
+        lastErrorMessage = e.toString();
+      }
     }
 
-    final jsonResp = jsonDecode(response.body);
-    final candidates = jsonResp['candidates'] as List?;
-    if (candidates == null || candidates.isEmpty) {
-      throw Exception('Layanan transkripsi tidak mengembalikan hasil teks.');
-    }
-
-    final parts =
-        candidates[0]['content']?['parts'] as List?;
-    if (parts == null || parts.isEmpty) {
-      throw Exception('Transkrip kosong.');
-    }
-
-    final text = parts[0]['text']?.toString().trim() ?? '';
-    if (text.isEmpty) {
-      throw Exception(
-          'Suara tidak terdeteksi atau rekaman terlalu hening.');
-    }
-
-    return text;
+    final displayMsg = lastErrorMessage ??
+        (lastResponse != null
+            ? 'Status ${lastResponse.statusCode}'
+            : 'Koneksi ke AI gagal');
+    throw Exception('Gagal melakukan transkripsi: $displayMsg');
   }
 }
 

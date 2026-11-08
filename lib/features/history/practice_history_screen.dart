@@ -353,33 +353,36 @@ class PracticeHistoryScreen extends ConsumerWidget {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.blue : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.blueDark : AppColors.border,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.blue : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
               color: isSelected ? AppColors.blueDark : AppColors.border,
-              offset: Offset(0, isSelected ? 2.5 : 1.5),
-              blurRadius: 0,
+              width: 1.5,
             ),
-          ],
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
+            boxShadow: [
+              BoxShadow(
+                color: isSelected ? AppColors.blueDark : AppColors.border,
+                offset: Offset(0, isSelected ? 2.5 : 1.5),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
       ),

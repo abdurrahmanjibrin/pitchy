@@ -288,7 +288,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'PITCHY menggunakan Gemini 2.5 Flash untuk transkripsi Bahasa Indonesia yang presisi dan evaluasi semantik.',
+                    'PITCHY menggunakan Gemini 3.8 Flash untuk transkripsi Bahasa Indonesia yang presisi dan evaluasi semantik.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,

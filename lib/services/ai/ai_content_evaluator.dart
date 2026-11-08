@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../data/models/challenge_evaluation.dart';
 import '../../data/models/practice_session.dart';
@@ -36,9 +37,12 @@ class GeminiContentEvaluator implements AiContentEvaluator {
       );
     }
 
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey',
-    );
+    final modelCandidates = [
+      'gemini-3.8-flash',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+    ];
 
     // Build prompt according to PRD Section 6.10 & 15.2
     final promptBuffer = StringBuffer();
@@ -134,17 +138,38 @@ class GeminiContentEvaluator implements AiContentEvaluator {
         }
       });
 
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: requestBody,
-          )
-          .timeout(const Duration(seconds: 40));
+      http.Response? response;
+      for (final model in modelCandidates) {
+        final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+        );
+        try {
+          final res = await http
+              .post(
+                url,
+                headers: {'Content-Type': 'application/json'},
+                body: requestBody,
+              )
+              .timeout(const Duration(seconds: 40));
 
-      if (response.statusCode != 200) {
-        throw Exception(
-            'API Gemini gagal dengan status ${response.statusCode}: ${response.body}');
+          if (res.statusCode == 200) {
+            response = res;
+            break;
+          }
+          if (res.statusCode != 404) {
+            response = res;
+            break;
+          }
+        } catch (_) {}
+      }
+
+      if (response == null || response.statusCode != 200) {
+        // Fallback to local rule-based evaluation if API call fails
+        debugPrint('Gemini evaluation fallback to rule-based engine.');
+        return await RuleBasedContentEvaluator().evaluatePitch(
+          session: session,
+          transcript: transcript,
+        );
       }
 
       final jsonResp = jsonDecode(response.body);

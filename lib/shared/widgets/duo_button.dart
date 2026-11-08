@@ -22,6 +22,7 @@ class DuoButton extends StatefulWidget {
   final double height;
   final double? fontSize;
   final bool isLoading;
+  final EdgeInsetsGeometry? padding;
 
   const DuoButton({
     super.key,
@@ -34,6 +35,7 @@ class DuoButton extends StatefulWidget {
     this.height = 52.0,
     this.fontSize,
     this.isLoading = false,
+    this.padding,
   }) : color = variant ?? color ?? DuoButtonColor.green;
 
   @override
@@ -42,6 +44,7 @@ class DuoButton extends StatefulWidget {
 
 class _DuoButtonState extends State<DuoButton> {
   bool _isPressed = false;
+  bool _isHovered = false;
 
   (Color bg, Color borderBottom, Color textColor) _getColors() {
     switch (widget.color) {
@@ -65,86 +68,109 @@ class _DuoButtonState extends State<DuoButton> {
     final (bg, borderBottom, textColor) = _getColors();
     final isEnabled = widget.onPressed != null && !widget.isLoading;
 
-    final bgColor = isEnabled ? bg : const Color(0xFFE5E5E5);
+    Color bgColor = isEnabled ? bg : const Color(0xFFE5E5E5);
+    if (_isHovered && isEnabled && !_isPressed) {
+      if (widget.color == DuoButtonColor.white) {
+        bgColor = const Color(0xFFF7F7F7);
+      } else {
+        bgColor = Color.lerp(bg, Colors.white, 0.08) ?? bg;
+      }
+    }
+
     final shadowColor = isEnabled ? borderBottom : const Color(0xFFCCCCCC);
     final effectiveTextColor = isEnabled ? textColor : const Color(0xFFAFAFAF);
 
     final double bottomOffset = _isPressed ? 1.0 : 4.0;
     final double topMargin = _isPressed ? 3.0 : 0.0;
 
-    return GestureDetector(
-      onTapDown: isEnabled
-          ? (_) {
-              HapticFeedback.lightImpact();
-              setState(() => _isPressed = true);
-            }
-          : null,
-      onTapUp: isEnabled
-          ? (_) {
-              setState(() => _isPressed = false);
-              widget.onPressed?.call();
-            }
-          : null,
-      onTapCancel: () {
-        if (_isPressed) setState(() => _isPressed = false);
+    return MouseRegion(
+      cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) {
+        if (mounted && isEnabled) setState(() => _isHovered = true);
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 60),
-        curve: Curves.easeOut,
-        margin: EdgeInsets.only(top: topMargin, bottom: 4.0 - bottomOffset),
-        width: widget.isFullWidth ? double.infinity : null,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: widget.color == DuoButtonColor.white
-                ? const Color(0xFFE5E5E5)
-                : Colors.white.withValues(alpha: 0.20),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: shadowColor,
-              offset: Offset(0, bottomOffset),
-              blurRadius: 0,
+      onExit: (_) {
+        if (mounted && _isHovered) setState(() => _isHovered = false);
+      },
+      child: GestureDetector(
+        onTapDown: isEnabled
+            ? (_) {
+                HapticFeedback.lightImpact();
+                setState(() => _isPressed = true);
+              }
+            : null,
+        onTapUp: isEnabled
+            ? (_) {
+                setState(() => _isPressed = false);
+                widget.onPressed?.call();
+              }
+            : null,
+        onTapCancel: () {
+          if (_isPressed) setState(() => _isPressed = false);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 60),
+          curve: Curves.easeOut,
+          margin: EdgeInsets.only(top: topMargin, bottom: 4.0 - bottomOffset),
+          width: widget.isFullWidth ? double.infinity : null,
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: widget.color == DuoButtonColor.white
+                  ? const Color(0xFFE5E5E5)
+                  : Colors.white.withValues(alpha: 0.20),
+              width: 1.5,
             ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        alignment: Alignment.center,
-        child: widget.isLoading
-            ? SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.icon != null) ...[
-                    Icon(
-                      widget.icon,
-                      color: effectiveTextColor,
-                      size: (widget.fontSize ?? 15) + 4,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    widget.text,
-                    style: TextStyle(
-                      color: effectiveTextColor,
-                      fontSize: widget.fontSize ?? 15,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                offset: Offset(0, bottomOffset),
+                blurRadius: 0,
               ),
+            ],
+          ),
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
+          child: widget.isLoading
+              ? SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(effectiveTextColor),
+                  ),
+                )
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(
+                          widget.icon,
+                          color: effectiveTextColor,
+                          size: (widget.fontSize ?? 15) + 3,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: effectiveTextColor,
+                          fontSize: widget.fontSize ?? 15,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
       ),
     );
   }

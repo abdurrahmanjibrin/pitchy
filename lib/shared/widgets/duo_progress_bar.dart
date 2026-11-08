@@ -25,6 +25,7 @@ class DuoProgressBar extends StatelessWidget {
     final clampedValue = value.clamp(0.0, 1.0);
 
     return Container(
+      width: double.infinity,
       height: height,
       decoration: BoxDecoration(
         color: trackColor,

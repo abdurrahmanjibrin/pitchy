@@ -33,6 +33,7 @@ class DuoCard extends StatefulWidget {
 
 class _DuoCardState extends State<DuoCard> {
   bool _isPressed = false;
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,45 +41,62 @@ class _DuoCardState extends State<DuoCard> {
     final double bottomOffset = _isPressed ? 1.0 : 3.5;
     final double topOffset = _isPressed ? 2.5 : 0.0;
 
+    Color effectiveBg = widget.backgroundColor;
+    if (_isHovered && canTap && !_isPressed) {
+      effectiveBg = Color.lerp(widget.backgroundColor, const Color(0xFFF0F0F0), 0.3) ??
+          widget.backgroundColor;
+    }
+
     return Container(
       margin: widget.margin,
-      child: GestureDetector(
-        onTapDown: canTap
-            ? (_) {
-                HapticFeedback.selectionClick();
-                setState(() => _isPressed = true);
-              }
-            : null,
-        onTapUp: canTap
-            ? (_) {
-                setState(() => _isPressed = false);
-                widget.onTap?.call();
-              }
-            : null,
-        onTapCancel: () {
-          if (_isPressed) setState(() => _isPressed = false);
+      child: MouseRegion(
+        cursor: canTap ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        onEnter: (_) {
+          if (mounted && canTap) setState(() => _isHovered = true);
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 60),
-          curve: Curves.easeOut,
-          margin: EdgeInsets.only(top: topOffset, bottom: 3.5 - bottomOffset),
-          padding: widget.padding,
-          decoration: BoxDecoration(
-            color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            border: Border.all(
-              color: widget.borderColor,
-              width: widget.borderWidth,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: widget.bottomBorderColor,
-                offset: Offset(0, bottomOffset),
-                blurRadius: 0,
+        onExit: (_) {
+          if (mounted && _isHovered) setState(() => _isHovered = false);
+        },
+        child: GestureDetector(
+          onTapDown: canTap
+              ? (_) {
+                  HapticFeedback.selectionClick();
+                  setState(() => _isPressed = true);
+                }
+              : null,
+          onTapUp: canTap
+              ? (_) {
+                  setState(() => _isPressed = false);
+                  widget.onTap?.call();
+                }
+              : null,
+          onTapCancel: () {
+            if (_isPressed) setState(() => _isPressed = false);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 60),
+            curve: Curves.easeOut,
+            margin: EdgeInsets.only(top: topOffset, bottom: 3.5 - bottomOffset),
+            padding: widget.padding,
+            decoration: BoxDecoration(
+              color: effectiveBg,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              border: Border.all(
+                color: _isHovered && canTap
+                    ? Color.lerp(widget.borderColor, Colors.black, 0.15)!
+                    : widget.borderColor,
+                width: widget.borderWidth,
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: widget.bottomBorderColor,
+                  offset: Offset(0, bottomOffset),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );
