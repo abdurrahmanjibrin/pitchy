@@ -5,6 +5,8 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/practice_session.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
 import '../../shared/widgets/empty_state_view.dart';
 import '../../shared/widgets/score_badge.dart';
 import '../practice/practice_setup_screen.dart';
@@ -19,14 +21,17 @@ class PracticeHistoryScreen extends ConsumerWidget {
     final filter = ref.watch(historyFilterProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat Latihan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Riwayat Latihan'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Filter Chips Bar
+            // Duolingo Filter Chips Bar
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
                   _buildFilterChip(
@@ -112,14 +117,19 @@ class PracticeHistoryScreen extends ConsumerWidget {
             Expanded(
               child: historyAsync.when(
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+                  ),
                 ),
                 error: (err, stack) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Text(
                       'Gagal memuat riwayat: $err',
-                      style: const TextStyle(color: AppColors.error),
+                      style: const TextStyle(
+                        color: AppColors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -128,7 +138,8 @@ class PracticeHistoryScreen extends ConsumerWidget {
                     return EmptyStateView(
                       icon: Icons.history_rounded,
                       title: 'Belum Ada Riwayat',
-                      message: 'Sesi latihan yang kamu simpan akan tampil di sini untuk memantau peningkatan berbicara.',
+                      message:
+                          'Sesi latihan yang kamu simpan akan tampil di sini untuk memantau peningkatan berbicara.',
                       buttonText: 'Mulai Latihan',
                       onAction: () {
                         Navigator.of(context).push(
@@ -143,7 +154,7 @@ class PracticeHistoryScreen extends ConsumerWidget {
                   return ListView.separated(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 12,
+                      vertical: 8,
                     ),
                     itemCount: sessions.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -156,8 +167,8 @@ class PracticeHistoryScreen extends ConsumerWidget {
                         background: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(16),
+                            color: AppColors.red,
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           alignment: Alignment.centerRight,
                           child: const Icon(
@@ -170,22 +181,44 @@ class PracticeHistoryScreen extends ConsumerWidget {
                           return await showDialog<bool>(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              backgroundColor: AppColors.surface,
-                              title: const Text('Hapus Sesi Ini?'),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                side: const BorderSide(
+                                  color: AppColors.border,
+                                  width: 2,
+                                ),
+                              ),
+                              title: const Text(
+                                'Hapus Sesi Ini?',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
                               content: Text(
                                 'Sesi "${item.title}" beserta rekaman audio dan evaluasinya akan dihapus permanen.',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(ctx).pop(false),
-                                  child: const Text('Batal'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.of(ctx).pop(true),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.error,
+                                  child: const Text(
+                                    'Batal',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  child: const Text('Hapus'),
+                                ),
+                                DuoButton(
+                                  text: 'HAPUS',
+                                  variant: DuoButtonVariant.red,
+                                  height: 42,
+                                  onPressed: () => Navigator.of(ctx).pop(true),
                                 ),
                               ],
                             ),
@@ -198,8 +231,7 @@ class PracticeHistoryScreen extends ConsumerWidget {
                           ref.invalidate(dashboardStatsProvider);
                           ref.invalidate(progressDataProvider);
                         },
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
+                        child: DuoCard(
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -208,64 +240,84 @@ class PracticeHistoryScreen extends ConsumerWidget {
                               ),
                             );
                           },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppColors.surfaceBorder,
+                          child: Row(
+                            children: [
+                              ScoreBadge(
+                                score: item.overallScore,
+                                size: 54,
+                                showLabel: false,
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                ScoreBadge(
-                                  score: item.overallScore,
-                                  size: 52,
-                                  showLabel: false,
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${_getModeLabel(item)} • ${Formatters.formatSecondsToMinutesSeconds(item.actualDuration)}',
-                                        style: const TextStyle(
-                                          color: AppColors.secondary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.blue.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: AppColors.blue,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            _getModeLabel(item),
+                                            style: const TextStyle(
+                                              color: AppColors.blueDark,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        Formatters.formatDate(item.createdAt),
-                                        style: const TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 11,
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          Formatters.formatSecondsToMinutesSeconds(
+                                            item.actualDuration,
+                                          ),
+                                          style: const TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      Formatters.formatDate(item.createdAt),
+                                      style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                                const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: AppColors.textSecondary,
+                                size: 26,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -284,16 +336,16 @@ class PracticeHistoryScreen extends ConsumerWidget {
     if (s.mode == 'challenge') {
       switch (s.challengeType) {
         case 'random_words':
-          return 'Random Words';
+          return 'Words';
         case 'random_theme':
-          return 'Random Theme';
+          return 'Theme';
         case 'audience_scenario':
-          return 'Audience Scenario';
+          return 'Scenario';
         default:
           return 'Challenge';
       }
     }
-    return s.mode == 'timed' ? 'Target Waktu' : 'Latihan Bebas';
+    return s.mode == 'timed' ? 'Target Waktu' : 'Bebas';
   }
 
   Widget _buildFilterChip({
@@ -302,23 +354,32 @@ class PracticeHistoryScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.blue : Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
+            color: isSelected ? AppColors.blueDark : AppColors.border,
+            width: 1.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected ? AppColors.blueDark : AppColors.border,
+              offset: Offset(0, isSelected ? 2.5 : 1.5),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: Text(
           label,
           style: TextStyle(
             color: isSelected ? Colors.white : AppColors.textSecondary,
             fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),

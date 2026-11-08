@@ -6,6 +6,8 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/repositories/practice_repository.dart';
+import '../../shared/widgets/duo_card.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
 import '../../shared/widgets/empty_state_view.dart';
 import '../practice/practice_setup_screen.dart';
 
@@ -17,18 +19,26 @@ class ProgressScreen extends ConsumerWidget {
     final progressAsync = ref.watch(progressDataProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Perkembangan Latihan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Perkembangan Latihan'),
+      ),
       body: SafeArea(
         child: progressAsync.when(
           loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+            ),
           ),
           error: (err, stack) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Text(
                 'Gagal memuat grafik perkembangan: $err',
-                style: const TextStyle(color: AppColors.error),
+                style: const TextStyle(
+                  color: AppColors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -37,7 +47,8 @@ class ProgressScreen extends ConsumerWidget {
               return EmptyStateView(
                 icon: Icons.insights_rounded,
                 title: 'Data Belum Cukup',
-                message: 'Lakukan setidaknya satu atau dua sesi latihan untuk melihat tren perkembangan skor dan tempo bicaramu di sini.',
+                message:
+                    'Lakukan setidaknya satu atau dua sesi latihan untuk melihat tren perkembangan skor dan tempo bicaramu di sini.',
                 buttonText: 'Mulai Latihan',
                 onAction: () {
                   Navigator.of(context).push(
@@ -52,28 +63,20 @@ class ProgressScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Header Note
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.surfaceBorder),
-                  ),
+                // Header Note DuoCard
+                DuoCard(
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.trending_up_rounded,
-                        color: AppColors.secondary,
-                        size: 22,
-                      ),
+                      const DuoMascotAvatar(size: 36),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Menampilkan perkembangan dari total ${dataPoints.length} sesi latihan yang tersimpan.',
+                          'Menampilkan grafik tren dari total ${dataPoints.length} sesi latihanmu. Semakin sering berlatih, semakin tajam intonasimu!',
                           style: const TextStyle(
-                            color: AppColors.textSecondary,
+                            color: AppColors.textPrimary,
                             fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3,
                           ),
                         ),
                       ),
@@ -82,26 +85,26 @@ class ProgressScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Chart 1: Overall Score Trend
+                // Chart 1: Overall Score Trend (Duolingo Green)
                 _buildChartContainer(
                   title: 'Tren Skor Keseluruhan',
-                  subtitle: 'Skala 0 – 100',
+                  subtitle: 'Skala 0 – 100 • Evaluasi AI & Vokal',
                   child: _buildScoreLineChart(dataPoints),
                 ),
                 const SizedBox(height: 16),
 
-                // Chart 2: Speaking Pace (WPM)
+                // Chart 2: Speaking Pace (Duolingo Blue)
                 _buildChartContainer(
                   title: 'Kecepatan Berbicara (WPM)',
-                  subtitle: 'Zona hijau adalah rentang optimal (100–160 WPM)',
+                  subtitle: 'Zona hijau optimal adalah 100–160 WPM',
                   child: _buildWpmChart(dataPoints),
                 ),
                 const SizedBox(height: 16),
 
-                // Chart 3: Filler Rate %
+                // Chart 3: Filler Rate % (Duolingo Orange)
                 _buildChartContainer(
                   title: 'Persentase Kata Pengisi (% Filler)',
-                  subtitle: 'Semakin rendah semakin ringkas dan jelas',
+                  subtitle: 'Semakin rendah persentase, semakin tajam pesanmu',
                   child: _buildFillerChart(dataPoints),
                 ),
                 const SizedBox(height: 20),
@@ -118,13 +121,7 @@ class ProgressScreen extends ConsumerWidget {
     required String subtitle,
     required Widget child,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.surfaceBorder),
-      ),
+    return DuoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -132,16 +129,20 @@ class ProgressScreen extends ConsumerWidget {
             title,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           SizedBox(height: 180, child: child),
         ],
       ),
@@ -163,8 +164,10 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 25,
-          getDrawingHorizontalLine: (value) =>
-              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => const FlLine(
+            color: AppColors.border,
+            strokeWidth: 1.5,
+          ),
         ),
         titlesData: FlTitlesData(
           rightTitles: const AxisTitles(
@@ -185,8 +188,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       Formatters.formatDateShort(points[idx].date),
                       style: const TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                         fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   );
@@ -203,8 +207,9 @@ class ProgressScreen extends ConsumerWidget {
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}',
                 style: const TextStyle(
-                  color: AppColors.textMuted,
+                  color: AppColors.textSecondary,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -215,12 +220,12 @@ class ProgressScreen extends ConsumerWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColors.primary,
-            barWidth: 3,
+            color: AppColors.green,
+            barWidth: 4,
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.primary.withValues(alpha: 0.15),
+              color: AppColors.green.withValues(alpha: 0.18),
             ),
           ),
         ],
@@ -243,8 +248,10 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 40,
-          getDrawingHorizontalLine: (value) =>
-              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => const FlLine(
+            color: AppColors.border,
+            strokeWidth: 1.5,
+          ),
         ),
         titlesData: FlTitlesData(
           rightTitles: const AxisTitles(
@@ -265,8 +272,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       'Sesi ${idx + 1}',
                       style: const TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                         fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   );
@@ -283,8 +291,9 @@ class ProgressScreen extends ConsumerWidget {
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}',
                 style: const TextStyle(
-                  color: AppColors.textMuted,
+                  color: AppColors.textSecondary,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -295,8 +304,8 @@ class ProgressScreen extends ConsumerWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColors.secondary,
-            barWidth: 3,
+            color: AppColors.blue,
+            barWidth: 4,
             dotData: const FlDotData(show: true),
           ),
         ],
@@ -319,8 +328,10 @@ class ProgressScreen extends ConsumerWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 5,
-          getDrawingHorizontalLine: (value) =>
-              FlLine(color: AppColors.surfaceBorder, strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => const FlLine(
+            color: AppColors.border,
+            strokeWidth: 1.5,
+          ),
         ),
         titlesData: FlTitlesData(
           rightTitles: const AxisTitles(
@@ -341,8 +352,9 @@ class ProgressScreen extends ConsumerWidget {
                     child: Text(
                       'Sesi ${idx + 1}',
                       style: const TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                         fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   );
@@ -359,8 +371,9 @@ class ProgressScreen extends ConsumerWidget {
               getTitlesWidget: (val, meta) => Text(
                 '${val.toInt()}%',
                 style: const TextStyle(
-                  color: AppColors.textMuted,
+                  color: AppColors.textSecondary,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -371,8 +384,8 @@ class ProgressScreen extends ConsumerWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColors.warning,
-            barWidth: 3,
+            color: AppColors.orange,
+            barWidth: 4,
             dotData: const FlDotData(show: true),
           ),
         ],

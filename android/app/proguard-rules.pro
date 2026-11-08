@@ -19,3 +19,4 @@
 -keep class xyz.luan.audioplayers.** { *; }
 
 -dontwarn **
+

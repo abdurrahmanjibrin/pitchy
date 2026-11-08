@@ -10,6 +10,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/body_language_evaluation.dart';
 import '../../services/playback/audio_playback_service.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
 import '../processing/processing_screen.dart';
 import 'recording_studio_screen.dart';
 
@@ -132,63 +135,53 @@ class _PostRecordingPreviewScreenState
         : 0.0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pratinjau Rekaman')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Pratinjau Rekaman'),
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             children: [
               const Spacer(),
 
-              // Microphone Icon Circle
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.surface,
-                  border: Border.all(color: AppColors.primary, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 54,
-                ),
+              // Celebratory Mascot with Speech Bubble
+              const DuoMascotAvatar(
+                size: 90,
+                speechText: 'Keren! Rekamanmu sudah siap untuk dinilai AI Coach.',
               ),
               const SizedBox(height: 24),
 
-              const Text(
-                'Rekaman Selesai Diambil',
-                style: TextStyle(
+              Text(
+                'Rekaman Selesai!',
+                style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                '${Formatters.formatSecondsToMinutesSeconds(widget.actualDurationSeconds)} • $fileSizeKb KB • Format M4A Audio',
+                '${Formatters.formatSecondsToMinutesSeconds(widget.actualDurationSeconds)} • $fileSizeKb KB • Format M4A',
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+
               if (widget.bodyLanguageEvaluation != null) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.purple.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.4),
+                      color: AppColors.purple,
+                      width: 2,
                     ),
                   ),
                   child: Row(
@@ -196,32 +189,27 @@ class _PostRecordingPreviewScreenState
                     children: [
                       const Icon(
                         Icons.videocam_rounded,
-                        color: AppColors.secondary,
-                        size: 16,
+                        color: AppColors.purple,
+                        size: 18,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Bahasa Tubuh AI: ${widget.bodyLanguageEvaluation!.overallScore.toInt()}/100 • Strike Zone ${widget.bodyLanguageEvaluation!.strikeZonePercentage.toInt()}%',
+                        'AI Pose: ${widget.bodyLanguageEvaluation!.overallScore.toInt()}/100 • Strike Zone ${widget.bodyLanguageEvaluation!.strikeZonePercentage.toInt()}%',
                         style: const TextStyle(
-                          color: AppColors.secondary,
+                          color: AppColors.purpleDark,
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-              const SizedBox(height: 36),
 
-              // Audio Player Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.surfaceBorder),
-                ),
+              const SizedBox(height: 28),
+
+              // Audio Player DuoCard
+              DuoCard(
                 child: Column(
                   children: [
                     Row(
@@ -234,6 +222,7 @@ class _PostRecordingPreviewScreenState
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
@@ -243,6 +232,7 @@ class _PostRecordingPreviewScreenState
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -250,12 +240,12 @@ class _PostRecordingPreviewScreenState
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
                         thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 6,
+                          enabledThumbRadius: 8,
                         ),
-                        trackHeight: 4,
-                        activeTrackColor: AppColors.primaryLight,
-                        inactiveTrackColor: AppColors.surfaceBorder,
-                        thumbColor: Colors.white,
+                        trackHeight: 6,
+                        activeTrackColor: AppColors.blue,
+                        inactiveTrackColor: AppColors.border,
+                        thumbColor: AppColors.blueDark,
                       ),
                       child: Slider(
                         value: sliderValue,
@@ -268,15 +258,33 @@ class _PostRecordingPreviewScreenState
                       ),
                     ),
                     const SizedBox(height: 6),
-                    IconButton(
-                      iconSize: 48,
-                      icon: Icon(
-                        _playbackData.isPlaying
-                            ? Icons.pause_circle_filled_rounded
-                            : Icons.play_circle_fill_rounded,
-                        color: AppColors.primaryLight,
+                    GestureDetector(
+                      onTap: _togglePlayPause,
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.blue,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white38, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.blueDark,
+                              offset: Offset(0, 4),
+                              blurRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _playbackData.isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
                       ),
-                      onPressed: _togglePlayPause,
                     ),
                   ],
                 ),
@@ -285,18 +293,20 @@ class _PostRecordingPreviewScreenState
               const Spacer(),
 
               // Primary CTA
-              ElevatedButton.icon(
+              DuoButton(
+                text: 'ANALISIS DENGAN AI COACH',
+                icon: Icons.psychology_rounded,
+                variant: DuoButtonVariant.green,
                 onPressed: _proceedToProcessing,
-                icon: const Icon(Icons.psychology_rounded),
-                label: const Text('Proses & Analisis dengan AI Coach'),
               ),
               const SizedBox(height: 12),
 
               // Re-record
-              OutlinedButton.icon(
+              DuoButton(
+                text: 'REKAM ULANG',
+                icon: Icons.refresh_rounded,
+                variant: DuoButtonVariant.white,
                 onPressed: _reRecord,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Rekam Ulang'),
               ),
               const SizedBox(height: 8),
             ],

@@ -11,6 +11,10 @@ import '../../data/models/body_language_evaluation.dart';
 import '../../data/models/challenge_evaluation.dart';
 import '../../data/models/practice_session.dart';
 import '../../services/playback/audio_playback_service.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
+import '../../shared/widgets/duo_progress_bar.dart';
 import '../../shared/widgets/score_badge.dart';
 import '../dashboard/main_navigation_screen.dart';
 import '../practice/practice_setup_screen.dart';
@@ -87,6 +91,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
     final hasBodyLanguage = s.bodyLanguageEvaluation != null;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Laporan Evaluasi Pitching'),
         leading: IconButton(
@@ -109,84 +114,39 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Score Header Card
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.surfaceBorder),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ScoreBadge(
-                        score: s.overallScore,
-                        label: 'Skor Total',
-                        size: hasBodyLanguage ? 58 : 68,
-                      ),
-                      Container(height: 44, width: 1, color: AppColors.divider),
-                      ScoreBadge(
-                        score: s.deliveryScore,
-                        label: 'Vokal',
-                        size: hasBodyLanguage ? 52 : 58,
-                      ),
-                      if (hasBodyLanguage) ...[
-                        Container(
-                            height: 44, width: 1, color: AppColors.divider),
-                        ScoreBadge(
-                          score: s.bodyLanguageScore,
-                          label: 'Bahasa Tubuh',
-                          size: 52,
-                        ),
-                      ],
-                      Container(height: 44, width: 1, color: AppColors.divider),
-                      ScoreBadge(
-                        score: s.contentScore,
-                        label: 'Konten AI',
-                        size: hasBodyLanguage ? 52 : 58,
-                      ),
-                    ],
-                  ),
-                  if (s.recordingPath != null &&
-                      s.recordingPath!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Divider(height: 1),
-                    const SizedBox(height: 8),
-                    // Embedded Playback Bar
+            // Score Header DuoCard
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: DuoCard(
+                child: Column(
+                  children: [
+                    // Mascot Encouragement
                     Row(
                       children: [
-                        IconButton(
-                          iconSize: 30,
-                          icon: Icon(
-                            _playbackData.isPlaying
-                                ? Icons.pause_circle_filled_rounded
-                                : Icons.play_circle_fill_rounded,
-                            color: AppColors.primaryLight,
-                          ),
-                          onPressed: _togglePlayPause,
-                        ),
+                        const DuoMascotAvatar(size: 38),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Dengarkan Rekaman Latihan (${Formatters.formatSecondsToMinutesSeconds(s.actualDuration)})',
+                                (s.overallScore ?? 0) >= 75
+                                    ? 'Kerja Bagus! +25 XP'
+                                    : 'Terus Berlatih! +15 XP',
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
-                              const SizedBox(height: 2),
                               Text(
-                                '${Formatters.formatSecondsToMinutesSeconds(_playbackData.position.inSeconds)} / ${Formatters.formatSecondsToMinutesSeconds(s.actualDuration)}',
+                                s.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: AppColors.textSecondary,
-                                  fontSize: 11,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -194,30 +154,140 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: AppColors.border),
+                    const SizedBox(height: 12),
+
+                    // Badges Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ScoreBadge(
+                          score: s.overallScore,
+                          label: 'Skor Total',
+                          size: hasBodyLanguage ? 56 : 64,
+                        ),
+                        Container(height: 40, width: 2, color: AppColors.border),
+                        ScoreBadge(
+                          score: s.deliveryScore,
+                          label: 'Vokal',
+                          size: hasBodyLanguage ? 50 : 56,
+                        ),
+                        if (hasBodyLanguage) ...[
+                          Container(height: 40, width: 2, color: AppColors.border),
+                          ScoreBadge(
+                            score: s.bodyLanguageScore,
+                            label: 'Pose',
+                            size: 50,
+                          ),
+                        ],
+                        Container(height: 40, width: 2, color: AppColors.border),
+                        ScoreBadge(
+                          score: s.contentScore,
+                          label: 'Konten AI',
+                          size: hasBodyLanguage ? 50 : 56,
+                        ),
+                      ],
+                    ),
+
+                    // Embedded Playback Bar
+                    if (s.recordingPath != null && s.recordingPath!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: _togglePlayPause,
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.blue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _playbackData.isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Dengarkan Rekaman Audio',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${Formatters.formatSecondsToMinutesSeconds(_playbackData.position.inSeconds)} / ${Formatters.formatSecondsToMinutesSeconds(s.actualDuration)}',
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
 
-            // Tab Bar
-            TabBar(
-              controller: _tabController,
-              isScrollable: (hasWordsCheck || hasBodyLanguage),
-              indicatorColor: AppColors.primary,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: AppColors.textMuted,
-              labelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
+            // Duolingo Rounded Tab Bar
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border, width: 1.5),
               ),
-              tabs: [
-                const Tab(text: 'Penyampaian'),
-                if (hasBodyLanguage) const Tab(text: 'Bahasa Tubuh'),
-                const Tab(text: 'Evaluasi AI'),
-                if (hasWordsCheck) const Tab(text: 'Kata Wajib'),
-                const Tab(text: 'Transkrip'),
-              ],
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: (hasWordsCheck || hasBodyLanguage),
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.green,
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+                tabs: [
+                  const Tab(text: 'Penyampaian'),
+                  if (hasBodyLanguage) const Tab(text: 'Bahasa Tubuh'),
+                  const Tab(text: 'Evaluasi AI'),
+                  if (hasWordsCheck) const Tab(text: 'Kata Wajib'),
+                  const Tab(text: 'Transkrip'),
+                ],
+              ),
             ),
 
             // Tab Views
@@ -235,19 +305,22 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
               ),
             ),
 
-            // Bottom CTA Row
+            // Bottom CTA Buttons
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: const BoxDecoration(
-                color: AppColors.surface,
+                color: Colors.white,
                 border: Border(
-                  top: BorderSide(color: AppColors.surfaceBorder, width: 1),
+                  top: BorderSide(color: AppColors.border, width: 2),
                 ),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: DuoButton(
+                      text: 'BERANDA',
+                      variant: DuoButtonVariant.white,
+                      height: 48,
                       onPressed: () {
                         ref.read(audioPlaybackServiceProvider).stop();
                         Navigator.of(context).pushAndRemoveUntil(
@@ -258,12 +331,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                           (route) => false,
                         );
                       },
-                      child: const Text('Beranda'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
+                    child: DuoButton(
+                      text: 'LATIHAN LAGI',
+                      variant: DuoButtonVariant.green,
+                      height: 48,
                       onPressed: () {
                         ref.read(audioPlaybackServiceProvider).stop();
                         Navigator.of(context).pushReplacement(
@@ -272,7 +347,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                           ),
                         );
                       },
-                      child: const Text('Latihan Baru'),
                     ),
                   ),
                 ],
@@ -296,13 +370,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
       padding: const EdgeInsets.all(16),
       children: [
         // Speaking Pace (WPM) Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.surfaceBorder),
-          ),
+        DuoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -314,7 +382,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   Container(
@@ -325,19 +393,20 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     decoration: BoxDecoration(
                       color: paceColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: paceColor, width: 1.5),
                     ),
                     child: Text(
                       paceLabel,
                       style: TextStyle(
                         color: paceColor,
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
@@ -347,7 +416,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 38,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -356,6 +425,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 13,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -368,6 +438,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   height: 1.4,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -376,13 +447,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
         const SizedBox(height: 14),
 
         // Filler Words Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.surfaceBorder),
-          ),
+        DuoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -394,15 +459,15 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   Text(
-                    '$fillerCount kata ($fillerRate% dari total)',
+                    '$fillerCount kata ($fillerRate%)',
                     style: const TextStyle(
-                      color: AppColors.secondary,
+                      color: AppColors.blueDark,
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -439,7 +504,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -450,19 +515,19 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 4,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceCard,
+                        color: AppColors.yellow.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.surfaceBorder),
+                        border: Border.all(color: AppColors.yellow, width: 1.5),
                       ),
                       child: Text(
                         '"${f.fillerWord}": ${f.count}x',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     );
@@ -471,7 +536,11 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
               ] else ...[
                 const Text(
                   'Bagus sekali! Tidak ada kata pengisi yang terdeteksi secara dominan pada rekaman ini.',
-                  style: TextStyle(color: AppColors.success, fontSize: 13),
+                  style: TextStyle(
+                    color: AppColors.greenDark,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ],
@@ -488,7 +557,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           padding: EdgeInsets.all(24.0),
           child: Text(
             'Evaluasi konten belum tersedia untuk sesi ini.',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       );
@@ -497,7 +569,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Sentence Clarity Card
         _buildRubricCard(
           title: 'Kejelasan Susunan Kalimat (Clarity)',
           score: eval.sentenceClarityScore,
@@ -505,8 +576,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           icon: Icons.auto_stories_rounded,
         ),
         const SizedBox(height: 12),
-
-        // Coherence Card
         _buildRubricCard(
           title: 'Kelogisan Alur & Transisi (Coherence)',
           score: eval.coherenceScore,
@@ -514,8 +583,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           icon: Icons.timeline_rounded,
         ),
         const SizedBox(height: 12),
-
-        // Relevance Card
         _buildRubricCard(
           title: 'Relevansi Topik & Tantangan',
           score: eval.relevanceScore,
@@ -523,8 +590,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           icon: Icons.center_focus_strong_rounded,
         ),
         const SizedBox(height: 12),
-
-        // Audience Fit (if present)
         if (eval.audienceFitScore != null) ...[
           _buildRubricCard(
             title: 'Penyesuaian terhadap Target Audiens',
@@ -536,21 +601,15 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
         ],
 
         // Strengths & Improvements
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.surfaceBorder),
-          ),
+        DuoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
-                children: [
+              Row(
+                children: const [
                   Icon(
-                    Icons.thumb_up_alt_outlined,
-                    color: AppColors.success,
+                    Icons.thumb_up_alt_rounded,
+                    color: AppColors.green,
                     size: 18,
                   ),
                   SizedBox(width: 8),
@@ -559,7 +618,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -573,7 +632,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     children: [
                       const Text(
                         '• ',
-                        style: TextStyle(color: AppColors.success),
+                        style: TextStyle(
+                          color: AppColors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Expanded(
                         child: Text(
@@ -581,6 +643,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             height: 1.35,
                           ),
                         ),
@@ -590,13 +653,13 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 ),
               ),
               const SizedBox(height: 14),
-              const Divider(),
+              const Divider(color: AppColors.border),
               const SizedBox(height: 8),
-              const Row(
-                children: [
+              Row(
+                children: const [
                   Icon(
-                    Icons.lightbulb_outline_rounded,
-                    color: AppColors.warning,
+                    Icons.lightbulb_rounded,
+                    color: AppColors.yellow,
                     size: 18,
                   ),
                   SizedBox(width: 8),
@@ -605,7 +668,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -619,7 +682,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     children: [
                       const Text(
                         '• ',
-                        style: TextStyle(color: AppColors.warning),
+                        style: TextStyle(
+                          color: AppColors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Expanded(
                         child: Text(
@@ -627,6 +693,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             height: 1.35,
                           ),
                         ),
@@ -643,33 +710,25 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
         // Suggested Revision
         if (eval.suggestedRevision != null &&
             eval.suggestedRevision!.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primaryLight.withValues(alpha: 0.4),
-                width: 1.2,
-              ),
-            ),
+          DuoCard(
+            borderColor: AppColors.blue,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
-                  children: [
+                Row(
+                  children: const [
                     Icon(
                       Icons.edit_note_rounded,
-                      color: AppColors.secondary,
+                      color: AppColors.blue,
                       size: 20,
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Saran Perbaikan Kalimat Lebih Persuasif',
+                      'Saran Perbaikan Lebih Persuasif',
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ],
@@ -678,10 +737,11 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 Text(
                   eval.suggestedRevision!,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontStyle: FontStyle.italic,
                     fontSize: 13,
                     height: 1.4,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -703,7 +763,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
           ),
         ),
         const SizedBox(height: 6),
@@ -713,90 +773,89 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
             color: AppColors.textSecondary,
             fontSize: 12,
             height: 1.4,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 16),
         if (wordsResult.isNotEmpty)
           ...wordsResult.map((w) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: w.found
-                      ? AppColors.success.withValues(alpha: 0.5)
-                      : AppColors.error.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Kata: "${w.word}"',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: DuoCard(
+                borderColor: w.found ? AppColors.green : AppColors.red,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Kata: "${w.word}"',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (w.found ? AppColors.green : AppColors.red)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: w.found ? AppColors.green : AppColors.red,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            w.found ? 'Terintegrasi' : 'Tidak Ditemukan',
+                            style: TextStyle(
+                              color: w.found ? AppColors.greenDark : AppColors.red,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (w.evidence.isNotEmpty) ...[
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: (w.found ? AppColors.success : AppColors.error)
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Text(
-                          w.found ? 'Terintegrasi' : 'Tidak Ditemukan',
-                          style: TextStyle(
-                            color: w.found
-                                ? AppColors.success
-                                : AppColors.error,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                          'Bukti ucapan: "${w.evidence}"',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: 1.35,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
-                  ),
-                  if (w.evidence.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceCard,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Bukti ucapan: "${w.evidence}"',
+                    if (w.note.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        w.note,
                         style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          height: 1.35,
+                          color: AppColors.textMuted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                  if (w.note.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      w.note,
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ],
+                ),
               ),
             );
           })
@@ -805,32 +864,29 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
             final found =
                 s.transcript?.toLowerCase().contains(word.toLowerCase()) ??
                 false;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.surfaceBorder),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Kata: "$word"',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: DuoCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Kata: "$word"',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
-                  Text(
-                    found ? 'Ditemukan' : 'Belum Ditemukan',
-                    style: TextStyle(
-                      color: found ? AppColors.success : AppColors.error,
-                      fontSize: 12,
+                    Text(
+                      found ? 'Ditemukan' : 'Belum Ditemukan',
+                      style: TextStyle(
+                        color: found ? AppColors.greenDark : AppColors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           }),
@@ -845,7 +901,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
       return const Center(
         child: Text(
           'Transkrip tidak tersedia.',
-          style: TextStyle(color: AppColors.textMuted),
+          style: TextStyle(
+            color: AppColors.textMuted,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     }
@@ -853,22 +912,16 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.surfaceBorder),
-          ),
+        DuoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
-                children: [
+              Row(
+                children: const [
                   Icon(
                     Icons.notes_rounded,
-                    color: AppColors.secondary,
-                    size: 18,
+                    color: AppColors.blue,
+                    size: 20,
                   ),
                   SizedBox(width: 8),
                   Text(
@@ -876,7 +929,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -888,6 +941,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                   color: AppColors.textPrimary,
                   fontSize: 14,
                   height: 1.6,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -899,10 +953,11 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
 
   Widget _buildMetricTile({required String title, required String value}) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,15 +965,19 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
           Text(
             value,
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             title,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -934,13 +993,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
     final scoreDisplay = score != null ? score.toStringAsFixed(0) : '-';
     final scoreColor = Formatters.getScoreColor(score);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.surfaceBorder),
-      ),
+    return DuoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -949,14 +1002,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
             children: [
               Row(
                 children: [
-                  Icon(icon, size: 18, color: AppColors.secondary),
+                  Icon(icon, size: 18, color: AppColors.blue),
                   const SizedBox(width: 8),
                   Text(
                     title,
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -966,13 +1019,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 decoration: BoxDecoration(
                   color: scoreColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: scoreColor, width: 1.5),
                 ),
                 child: Text(
                   scoreDisplay,
                   style: TextStyle(
                     color: scoreColor,
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -986,6 +1040,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 color: AppColors.textSecondary,
                 fontSize: 12,
                 height: 1.4,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -1001,14 +1056,8 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Summary Header Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.surfaceBorder),
-          ),
+        // Summary Header DuoCard
+        DuoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1020,7 +1069,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   Container(
@@ -1029,13 +1078,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     decoration: BoxDecoration(
                       color: scoreColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: scoreColor, width: 1.5),
                     ),
                     child: Text(
                       '${overallScore.toInt()}/100',
                       style: TextStyle(
                         color: scoreColor,
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -1112,121 +1162,27 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
         ),
         const SizedBox(height: 16),
 
-        // Alerts Timeline
-        if (eval.alerts.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.surfaceBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.history_rounded,
-                        size: 18, color: AppColors.secondary),
-                    SizedBox(width: 8),
-                    Text(
-                      'Log Deteksi Bahasa Tubuh',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ...eval.alerts.map((alert) {
-                  final isWarning = alert.type == 'warning';
-                  final iconColor = isWarning
-                      ? const Color(0xFFF59E0B)
-                      : const Color(0xFF10B981);
-                  final timeStr = Formatters.formatSecondsToMinutesSeconds(
-                    alert.timestampSeconds,
-                  );
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceCard,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: AppColors.surfaceBorder,
-                            ),
-                          ),
-                          child: Text(
-                            timeStr,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          isWarning
-                              ? Icons.warning_amber_rounded
-                              : Icons.check_circle_rounded,
-                          size: 16,
-                          color: iconColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            alert.message,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 12,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
         // Actionable Tips
         if (eval.actionableTips.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
-              ),
-            ),
+          DuoCard(
+            borderColor: AppColors.yellow,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.lightbulb_rounded,
-                        size: 18, color: AppColors.accent),
+                    Icon(
+                      Icons.lightbulb_rounded,
+                      size: 18,
+                      color: AppColors.yellow,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Rekomendasi Latihan Gerak Tubuh',
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ],
@@ -1241,7 +1197,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                         const Text(
                           '• ',
                           style: TextStyle(
-                            color: AppColors.accent,
+                            color: AppColors.orange,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1253,6 +1209,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                               color: AppColors.textSecondary,
                               fontSize: 12,
                               height: 1.4,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -1287,6 +1244,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
+                fontWeight: FontWeight.bold,
               ),
             ),
             Row(
@@ -1297,6 +1255,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 11,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1306,22 +1265,18 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                   style: TextStyle(
                     color: color,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
           ],
         ),
-        const SizedBox(height: 5),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: (score / 100.0).clamp(0.0, 1.0),
-            backgroundColor: AppColors.surfaceCard,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 6,
-          ),
+        const SizedBox(height: 6),
+        DuoProgressBar(
+          progress: (score / 100.0).clamp(0.0, 1.0),
+          progressColor: color,
+          height: 10,
         ),
       ],
     );
@@ -1336,13 +1291,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
   }) {
     final scoreColor = Formatters.getScoreColor(score);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.surfaceBorder),
-      ),
+    return DuoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1351,14 +1300,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
             children: [
               Row(
                 children: [
-                  Icon(icon, size: 18, color: AppColors.secondary),
+                  Icon(icon, size: 18, color: AppColors.blue),
                   const SizedBox(width: 8),
                   Text(
                     title,
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],
@@ -1368,13 +1317,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 decoration: BoxDecoration(
                   color: scoreColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: scoreColor, width: 1.5),
                 ),
                 child: Text(
                   '${score.toInt()}/100',
                   style: TextStyle(
                     color: scoreColor,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -1387,14 +1337,16 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
               color: AppColors.textSecondary,
               fontSize: 12,
               height: 1.4,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
             ),
             child: Text(
               researchQuote,
@@ -1403,6 +1355,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen>
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
                 height: 1.3,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

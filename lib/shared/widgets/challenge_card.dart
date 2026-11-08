@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../../core/theme/app_theme.dart';
 import '../../data/models/challenge_item.dart';
+import 'duo_card.dart';
 
 class ChallengeCard extends StatelessWidget {
   final ChallengeItem challenge;
@@ -18,46 +18,48 @@ class ChallengeCard extends StatelessWidget {
   String _getTypeLabel(String type) {
     switch (type) {
       case 'random_words':
-        return 'Random Words Pitch';
+        return 'Kata Wajib Acak';
       case 'random_theme':
-        return 'Random Theme Pitch';
+        return 'Tema Pitch Acak';
       case 'audience_scenario':
-        return 'Audience Scenario Pitch';
+        return 'Skenario Audiens';
       default:
-        return 'Challenge Pitch';
+        return 'Tantangan Pitching';
+    }
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type) {
+      case 'random_words':
+        return AppColors.purple;
+      case 'random_theme':
+        return AppColors.blue;
+      case 'audience_scenario':
+        return AppColors.orange;
+      default:
+        return AppColors.green;
     }
   }
 
   Color _getDifficultyColor(String diff) {
     switch (diff.toLowerCase()) {
       case 'easy':
-        return AppColors.success;
+        return AppColors.green;
       case 'hard':
-        return AppColors.error;
+        return AppColors.red;
       default:
-        return AppColors.warning;
+        return AppColors.yellow;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    final typeColor = _getTypeColor(challenge.type);
+    final diffColor = _getDifficultyColor(challenge.difficulty);
+
+    return DuoCard(
+      padding: const EdgeInsets.all(18),
+      bottomBorderColor: const Color(0xFFD6D6D6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -66,51 +68,64 @@ class ChallengeCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(8),
+                  color: typeColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: typeColor.withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
                 ),
                 child: Text(
                   _getTypeLabel(challenge.type),
-                  style: const TextStyle(
-                    color: AppColors.secondary,
+                  style: TextStyle(
+                    color: typeColor,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getDifficultyColor(challenge.difficulty)
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
+                      color: diffColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: diffColor.withValues(alpha: 0.35),
+                        width: 1.5,
+                      ),
                     ),
                     child: Text(
-                      challenge.difficulty,
+                      challenge.difficulty.toUpperCase(),
                       style: TextStyle(
-                        color: _getDifficultyColor(challenge.difficulty),
+                        color: diffColor,
                         fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
                   if (showReroll && onReroll != null) ...[
                     const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded, size: 20),
-                      color: AppColors.secondary,
-                      tooltip: 'Acak ulang tantangan',
-                      onPressed: onReroll,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: onReroll,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F0F0),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFD6D6D6)),
+                        ),
+                        child: const Icon(
+                          Icons.refresh_rounded,
+                          size: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -125,7 +140,7 @@ class ChallengeCard extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w800,
               height: 1.4,
             ),
           ),
@@ -134,11 +149,11 @@ class ChallengeCard extends StatelessWidget {
           if (challenge.requiredWords.isNotEmpty) ...[
             const SizedBox(height: 16),
             const Text(
-              'Kata Wajib yang Harus Diselipkan:',
+              'Kata Wajib yang Harus Kamu Sebutkan:',
               style: TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
@@ -152,27 +167,28 @@ class ChallengeCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceCard,
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.yellowSoft,
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: AppColors.secondary.withValues(alpha: 0.5),
+                      color: AppColors.yellowDark.withValues(alpha: 0.4),
+                      width: 1.5,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.check_circle_outline_rounded,
-                        size: 14,
-                        color: AppColors.secondary,
+                        Icons.star_rounded,
+                        size: 16,
+                        color: AppColors.yellowDark,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         word,
                         style: const TextStyle(
-                          color: AppColors.textPrimary,
+                          color: Color(0xFF4A3800),
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -186,11 +202,11 @@ class ChallengeCard extends StatelessWidget {
           if (challenge.audienceProfile != null) ...[
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.surfaceCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.surfaceBorder),
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE5E5E5), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,48 +214,51 @@ class ChallengeCard extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(
-                        Icons.people_alt_outlined,
-                        size: 16,
-                        color: AppColors.secondary,
+                        Icons.people_alt_rounded,
+                        size: 18,
+                        color: AppColors.blue,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Target Audiens: ${challenge.audienceProfile!['type'] ?? ''}',
+                        'Target: ${challenge.audienceProfile!['type'] ?? ''}',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   if (challenge.audienceProfile!['focus'] != null)
                     Text(
                       '• Fokus: ${challenge.audienceProfile!['focus']}',
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
-                        height: 1.3,
+                        height: 1.35,
                       ),
                     ),
                   if (challenge.audienceProfile!['convincer'] != null)
                     Text(
-                      '• Hal yang meyakinkan: ${challenge.audienceProfile!['convincer']}',
+                      '• Hal Menarik: ${challenge.audienceProfile!['convincer']}',
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
-                        height: 1.3,
+                        height: 1.35,
                       ),
                     ),
                   if (challenge.audienceProfile!['goal'] != null)
-                    Text(
-                      '• Tujuan: ${challenge.audienceProfile!['goal']}',
-                      style: const TextStyle(
-                        color: AppColors.secondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.3,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        '• Target Keberhasilan: ${challenge.audienceProfile!['goal']}',
+                        style: const TextStyle(
+                          color: AppColors.greenDark,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          height: 1.35,
+                        ),
                       ),
                     ),
                 ],

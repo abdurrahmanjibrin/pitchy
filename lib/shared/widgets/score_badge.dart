@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 
@@ -22,6 +21,17 @@ class ScoreBadge extends StatelessWidget {
     final color = Formatters.getScoreColor(score);
     final displayScore = score != null ? score!.toStringAsFixed(0) : '-';
 
+    Color getDarkShade(Color c) {
+      if (c == AppColors.green) return AppColors.greenDark;
+      if (c == AppColors.yellow || c == AppColors.warning) {
+        return AppColors.orangeDark;
+      }
+      if (c == AppColors.red || c == AppColors.error) return AppColors.redDark;
+      return const Color(0xFFCCCCCC);
+    }
+
+    final darkShade = getDarkShade(color);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -30,13 +40,13 @@ class ScoreBadge extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.12),
-            border: Border.all(color: color.withValues(alpha: 0.8), width: 3),
+            color: Colors.white,
+            border: Border.all(color: color, width: 3.5),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.2),
-                blurRadius: 10,
-                spreadRadius: 1,
+                color: darkShade.withValues(alpha: 0.35),
+                offset: const Offset(0, 3.5),
+                blurRadius: 0,
               ),
             ],
           ),
@@ -44,21 +54,22 @@ class ScoreBadge extends StatelessWidget {
           child: Text(
             displayScore,
             style: TextStyle(
-              color: Colors.white,
-              fontSize: size * 0.38,
-              fontWeight: FontWeight.bold,
+              color: color,
+              fontSize: size * 0.40,
+              fontWeight: FontWeight.w900,
               letterSpacing: -0.5,
             ),
           ),
         ),
         if (showLabel) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

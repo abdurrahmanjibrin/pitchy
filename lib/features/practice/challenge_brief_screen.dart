@@ -5,6 +5,8 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/challenge_item.dart';
 import '../../shared/widgets/challenge_card.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
 import 'preparation_screen.dart';
 
 class ChallengeBriefScreen extends ConsumerStatefulWidget {
@@ -62,37 +64,40 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
     final setup = ref.watch(activePracticeSetupProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Brief Tantangan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('BRIEF TANTANGAN')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header note
+              // Header note with friendly Duolingo style
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.blueSoft,
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.info.withValues(alpha: 0.3),
+                    color: AppColors.blue.withValues(alpha: 0.35),
+                    width: 1.5,
                   ),
                 ),
                 child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: AppColors.info,
-                      size: 20,
+                  children: const [
+                    Icon(
+                      Icons.tips_and_updates_rounded,
+                      color: AppColors.blueDark,
+                      size: 22,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Tantangan akan dikunci setelah perekaman dimulai. Kamu dapat melihat brief ini kembali saat rekaman berlangsung.',
+                        'Pelajari tantangan di bawah! Brief ini tetap bisa kamu buka saat rekaman berlangsung.',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: AppColors.blueDark,
                           fontSize: 12,
+                          fontWeight: FontWeight.w700,
                           height: 1.35,
                         ),
                       ),
@@ -100,11 +105,12 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Challenge Card
+              // Challenge Card & Summary
               Expanded(
                 child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
                       if (_isRerolling)
@@ -112,7 +118,7 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                           child: Padding(
                             padding: EdgeInsets.all(32.0),
                             child: CircularProgressIndicator(
-                              color: AppColors.primary,
+                              color: AppColors.green,
                             ),
                           ),
                         )
@@ -122,35 +128,37 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                           onReroll: _reroll,
                           showReroll: true,
                         ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // Session parameters summary
-                      Container(
+                      DuoCard(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.surfaceBorder),
-                        ),
                         child: Column(
                           children: [
                             _buildSummaryRow(
                               icon: Icons.hourglass_top_rounded,
                               label: 'Waktu Persiapan',
                               value: '${setup.preparationSeconds} detik',
+                              color: AppColors.blue,
                             ),
-                            const Divider(height: 20),
+                            const Divider(height: 22),
                             _buildSummaryRow(
-                              icon: Icons.timer_outlined,
+                              icon: Icons.timer_rounded,
                               label: 'Target Durasi Pitch',
                               value:
                                   '${(setup.targetDuration ?? 120) ~/ 60} menit',
+                              color: AppColors.green,
                             ),
-                            const Divider(height: 20),
+                            const Divider(height: 22),
                             _buildSummaryRow(
-                              icon: Icons.mic_none_rounded,
+                              icon: setup.recordingType == 'video'
+                                  ? Icons.videocam_rounded
+                                  : Icons.mic_rounded,
                               label: 'Format Rekaman',
-                              value: 'Audio Suara',
+                              value: setup.recordingType == 'video'
+                                  ? 'Video + AI Kamera'
+                                  : 'Audio Suara',
+                              color: AppColors.purple,
                             ),
                           ],
                         ),
@@ -160,13 +168,16 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
                 ),
               ),
 
-              // CTA Button
-              ElevatedButton.icon(
-                onPressed: _startPreparation,
-                icon: const Icon(Icons.timer_rounded),
-                label: const Text('Mulai Hitung Mundur Persiapan'),
-              ),
               const SizedBox(height: 12),
+
+              // CTA Button (Duolingo 3D Tactile Button)
+              DuoButton(
+                text: 'MULAI HITUNG MUNDUR',
+                icon: Icons.timer_rounded,
+                color: DuoButtonColor.green,
+                onPressed: _startPreparation,
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -178,19 +189,28 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
     required IconData icon,
     required String label,
     required String value,
+    required Color color,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: AppColors.secondary),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 18, color: color),
+            ),
             const SizedBox(width: 10),
             Text(
               label,
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -200,7 +220,7 @@ class _ChallengeBriefScreenState extends ConsumerState<ChallengeBriefScreen> {
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 13,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],

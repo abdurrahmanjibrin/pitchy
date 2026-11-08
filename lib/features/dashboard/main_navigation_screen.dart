@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../history/practice_history_screen.dart';
@@ -37,58 +38,96 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.white,
           border: Border(
-            top: BorderSide(color: AppColors.surfaceBorder, width: 1),
+            top: BorderSide(color: Color(0xFFE5E5E5), width: 2),
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          backgroundColor: Colors.transparent,
-          indicatorColor: AppColors.primary.withValues(alpha: 0.25),
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: AppColors.textSecondary),
-              selectedIcon: Icon(
-                Icons.home_rounded,
-                color: AppColors.secondary,
-              ),
-              label: 'Beranda',
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  index: 0,
+                  icon: Icons.home_rounded,
+                  label: 'BERANDA',
+                  activeColor: AppColors.green,
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: Icons.history_rounded,
+                  label: 'RIWAYAT',
+                  activeColor: AppColors.blue,
+                ),
+                _buildNavItem(
+                  index: 2,
+                  icon: Icons.leaderboard_rounded,
+                  label: 'PROGRES',
+                  activeColor: AppColors.orange,
+                ),
+                _buildNavItem(
+                  index: 3,
+                  icon: Icons.face_rounded,
+                  label: 'PROFIL',
+                  activeColor: AppColors.purple,
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.history_rounded, color: AppColors.textSecondary),
-              selectedIcon: Icon(
-                Icons.history_rounded,
-                color: AppColors.secondary,
-              ),
-              label: 'Riwayat',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required int index,
+    required IconData icon,
+    required String label,
+    required Color activeColor,
+  }) {
+    final isSelected = _currentIndex == index;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        if (_currentIndex != index) {
+          HapticFeedback.selectionClick();
+          setState(() => _currentIndex = index);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected
+              ? Border.all(color: activeColor.withValues(alpha: 0.3), width: 2)
+              : Border.all(color: Colors.transparent, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 26,
+              color: isSelected ? activeColor : const Color(0xFFAFAFAF),
             ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.insights_rounded,
-                color: AppColors.textSecondary,
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? activeColor : const Color(0xFFAFAFAF),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
               ),
-              selectedIcon: Icon(
-                Icons.insights_rounded,
-                color: AppColors.secondary,
-              ),
-              label: 'Progres',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.person_outline_rounded,
-                color: AppColors.textSecondary,
-              ),
-              selectedIcon: Icon(
-                Icons.person_rounded,
-                color: AppColors.secondary,
-              ),
-              label: 'Profil',
             ),
           ],
         ),

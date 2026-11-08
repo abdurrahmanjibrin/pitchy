@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
+import '../../shared/widgets/duo_progress_bar.dart';
 import '../dashboard/main_navigation_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -22,18 +25,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final List<Map<String, dynamic>> _pages = [
     {
       'icon': Icons.bolt_rounded,
+      'color': AppColors.orange,
       'title': 'Latih Pitching Spontan',
-      'desc': 'Hadapi tantangan unik: menyisipkan kata wajib secara alami, tema acak mendadak, atau skenario audiens spesifik.',
+      'desc':
+          'Hadapi tantangan unik: menyisipkan kata wajib secara alami, tema acak mendadak, atau simulasi di depan audiens spesifik.',
+      'speech': 'Halo! Aku Pitchy, pelatih pitching pribadimu. Siap mulai?',
     },
     {
-      'icon': Icons.graphic_eq_rounded,
-      'title': 'Metrik Berbicara Terukur',
-      'desc': 'Evaluasi tempo bicara (Words Per Minute), deteksi kata pengisi (filler words) seperti "eee" dan "anu", serta durasi bicara.',
+      'icon': Icons.videocam_rounded,
+      'color': AppColors.blue,
+      'title': 'AI Kamera & Bahasa Tubuh',
+      'desc':
+          'Evaluasi gestur tangan di Strike Zone, postur ekspansif tegap, kestabilan kuda-kuda, dan tempo bicara terukur secara real-time.',
+      'speech': 'Kamera AI kami memantau gestur tubuhmu agar memancarkan percaya diri!',
     },
     {
-      'icon': Icons.psychology_rounded,
+      'icon': Icons.stars_rounded,
+      'color': AppColors.yellow,
       'title': 'AI Coach Berbasis Bukti',
-      'desc': 'Dapatkan feedback semantik atas kejelasan susunan kalimat, kelogisan alur, relevansi ide, dan kecocokan pesan bagi audiens.',
+      'desc':
+          'Dapatkan evaluasi semantik atas kejelasan susunan kalimat, kelogisan alur, dan rekomendasi perbaikan berbasis AI.',
+      'speech': 'Siapa nama panggilanmu? Biar latihannya makin akrab!',
     },
   ];
 
@@ -60,60 +72,66 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             children: [
-              // Header Skip Button
+              // Top Duolingo-style Progress Bar
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.record_voice_over_rounded,
-                          color: AppColors.secondary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'PITCHY',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'PITCHY',
+                    style: TextStyle(
+                      color: AppColors.greenDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                  if (_currentPage < 2)
-                    TextButton(
-                      onPressed: () {
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: DuoProgressBar(
+                      value: (_currentPage + 1) / _pages.length,
+                      height: 14,
+                      fillColor: AppColors.green,
+                    ),
+                  ),
+                  if (_currentPage < 2) ...[
+                    const SizedBox(width: 12),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
                         _pageController.animateToPage(
                           2,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeOutCubic,
                         );
                       },
-                      child: const Text('Lewati'),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Text(
+                          'LEWATI',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Page Carousel
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
+                  physics: const BouncingScrollPhysics(),
                   onPageChanged: (page) {
                     setState(() {
                       _currentPage = page;
@@ -122,123 +140,136 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   itemCount: _pages.length,
                   itemBuilder: (context, index) {
                     final item = _pages[index];
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.4),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.15,
+                    final color = item['color'] as Color;
+
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 10),
+                          // Mascot avatar with speech bubble
+                          DuoMascotAvatar(
+                            speechText: item['speech'] as String,
+                            size: 72,
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Large Hero Icon
+                          Container(
+                            width: 110,
+                            height: 110,
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: color, width: 3.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withValues(alpha: 0.25),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 0,
                                 ),
-                                blurRadius: 24,
-                                spreadRadius: 4,
-                              ),
-                            ],
+                              ],
+                            ),
+                            child: Icon(
+                              item['icon'] as IconData,
+                              size: 54,
+                              color: color,
+                            ),
                           ),
-                          child: Icon(
-                            item['icon'] as IconData,
-                            size: 54,
-                            color: AppColors.secondary,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          item['title'] as String,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          item['desc'] as String,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 15,
-                            height: 1.5,
-                          ),
-                        ),
-                        if (index == 2) ...[
                           const SizedBox(height: 28),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Nama Panggilan Kamu:',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
+
+                          Text(
+                            item['title'] as String,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(
-                              hintText: 'Contoh: Budi / Siti',
-                              prefixIcon: Icon(
-                                Icons.person_outline_rounded,
-                                color: AppColors.secondary,
-                              ),
+                          const SizedBox(height: 12),
+
+                          Text(
+                            item['desc'] as String,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                              height: 1.45,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
+
+                          if (index == 2) ...[
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F7F7),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: const Color(0xFFE5E5E5),
+                                  width: 2.0,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'NAMA PANGGILAN KAMU',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: _nameController,
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: 'Contoh: Budi / Siti',
+                                      prefixIcon: Icon(
+                                        Icons.person_rounded,
+                                        color: AppColors.green,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     );
                   },
                 ),
               ),
 
-              // Page Indicator dots
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _pages.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentPage == index ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _currentPage == index
-                          ? AppColors.primary
-                          : AppColors.surfaceBorder,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
 
-              // Action button
-              ElevatedButton(
+              // Action button (Duolingo 3D Tactile Button)
+              DuoButton(
+                text: _currentPage == 2 ? 'MULAI SEKARANG' : 'LANJUT',
+                color: DuoButtonColor.green,
                 onPressed: () {
                   if (_currentPage < 2) {
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                      curve: Curves.easeOutCubic,
                     );
                   } else {
                     _finishOnboarding();
                   }
                 },
-                child: Text(_currentPage == 2 ? 'Mulai Sekarang' : 'Lanjut'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
             ],
           ),
         ),

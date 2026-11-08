@@ -107,6 +107,18 @@ class BodyLanguageAnalyzer {
     _lastAlertSecond = -10;
   }
 
+  void pauseSession() {
+    _isProcessing = false;
+  }
+
+  void resumeSession() {
+    _isProcessing = false;
+  }
+
+  BodyLanguageEvaluation finalizeSession({int? actualDurationSeconds}) {
+    return finishEvaluation();
+  }
+
   /// Process an input image (from camera stream or test).
   Future<void> processImage(InputImage inputImage) async {
     if (_isClosed || _isProcessing) return;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../services/vision/body_language_analyzer.dart';
+import '../../../shared/widgets/duo_mascot_avatar.dart';
 
 class BodyLanguageHudOverlay extends StatelessWidget {
   final BodyLanguageLiveFeedback feedback;
@@ -24,19 +26,27 @@ class BodyLanguageHudOverlay extends StatelessWidget {
           ),
         ),
 
-        // 2. Top 4-Dimension Metric Badges
+        // 2. Top 4-Dimension Duolingo Metric Badges
         Positioned(
-          top: 70,
-          left: 16,
-          right: 16,
+          top: 68,
+          left: 14,
+          right: 14,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.black.withValues(alpha: 0.70),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.20),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -44,7 +54,7 @@ class BodyLanguageHudOverlay extends StatelessWidget {
                 _buildDimensionChip(
                   icon: Icons.accessibility_new_rounded,
                   label: 'Postur',
-                  value: feedback.isPostureOpen ? 'Terbuka' : 'Perbaiki',
+                  value: feedback.isPostureOpen ? 'Bagus' : 'Bungkuk',
                   isGood: feedback.isPostureOpen,
                 ),
                 _buildDivider(),
@@ -58,7 +68,7 @@ class BodyLanguageHudOverlay extends StatelessWidget {
                 _buildDimensionChip(
                   icon: Icons.anchor_rounded,
                   label: 'Kuda-kuda',
-                  value: feedback.isAnchored ? 'Stabil' : 'Pacing',
+                  value: feedback.isAnchored ? 'Kokoh' : 'Goyang',
                   isGood: feedback.isAnchored,
                 ),
                 _buildDivider(),
@@ -73,37 +83,36 @@ class BodyLanguageHudOverlay extends StatelessWidget {
           ),
         ),
 
-        // 3. Floating Active Coaching Pill (Center-Bottom)
+        // 3. Floating Duolingo Mascot Active Coaching Pill (Center-Bottom)
         Positioned(
-          bottom: 120,
-          left: 24,
-          right: 24,
+          bottom: 110,
+          left: 18,
+          right: 18,
           child: Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: feedback.primaryAlertColor.withValues(alpha: 0.90),
-                borderRadius: BorderRadius.circular(30),
+                color: feedback.isPostureOpen && feedback.inStrikeZone
+                    ? AppColors.green
+                    : AppColors.orange,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white30, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: feedback.primaryAlertColor.withValues(alpha: 0.4),
-                    blurRadius: 16,
+                    color: feedback.isPostureOpen && feedback.inStrikeZone
+                        ? AppColors.greenDark
+                        : AppColors.orangeDark,
                     offset: const Offset(0, 4),
+                    blurRadius: 0,
                   ),
                 ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    feedback.isPostureOpen && feedback.inStrikeZone
-                        ? Icons.check_circle_rounded
-                        : Icons.lightbulb_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  const DuoMascotAvatar(size: 28),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -111,7 +120,8 @@ class BodyLanguageHudOverlay extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.2,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -131,7 +141,7 @@ class BodyLanguageHudOverlay extends StatelessWidget {
     required String value,
     required bool isGood,
   }) {
-    final statusColor = isGood ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
+    final statusColor = isGood ? AppColors.green : AppColors.yellow;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -146,7 +156,7 @@ class BodyLanguageHudOverlay extends StatelessWidget {
               style: TextStyle(
                 color: statusColor,
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -154,9 +164,10 @@ class BodyLanguageHudOverlay extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.70),
             fontSize: 10,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -165,9 +176,9 @@ class BodyLanguageHudOverlay extends StatelessWidget {
 
   Widget _buildDivider() {
     return Container(
-      width: 1,
       height: 22,
-      color: Colors.white.withValues(alpha: 0.15),
+      width: 1,
+      color: Colors.white.withValues(alpha: 0.18),
     );
   }
 }
@@ -183,86 +194,43 @@ class _StrikeZonePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // If a strike zone is detected from pose, render bounding box
-    final rectNorm = feedback.strikeZoneNormalized;
-    if (rectNorm == null) return;
+    if (size.width == 0 || size.height == 0) return;
 
-    double left = rectNorm.left * size.width;
-    double right = rectNorm.right * size.width;
-    double top = rectNorm.top * size.height;
-    double bottom = rectNorm.bottom * size.height;
+    // Duolingo Strike Zone Box (Chest to Hip, 45% - 85% width)
+    final left = size.width * 0.15;
+    final top = size.height * 0.35;
+    final right = size.width * 0.85;
+    final bottom = size.height * 0.75;
+    final strikeRect = RRect.fromRectAndRadius(
+      Rect.fromLTRB(left, top, right, bottom),
+      const Radius.circular(20),
+    );
 
-    // Front camera is horizontally mirrored in preview
-    if (isFrontCamera) {
-      final tempLeft = size.width - right;
-      final tempRight = size.width - left;
-      left = tempLeft;
-      right = tempRight;
-    }
+    // Guide Box Background & Border
+    final isGood = feedback.inStrikeZone;
+    final zoneColor = isGood ? AppColors.green : AppColors.yellow;
 
-    final strikeRect = Rect.fromLTRB(left, top, right, bottom);
-
-    // Box background glow
-    final bgPaint = Paint()
-      ..color = (feedback.inStrikeZone
-              ? const Color(0xFF10B981)
-              : const Color(0xFF06B6D4))
-          .withValues(alpha: 0.08)
+    final fillPaint = Paint()
+      ..color = zoneColor.withValues(alpha: isGood ? 0.08 : 0.04)
       ..style = PaintingStyle.fill;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(strikeRect, const Radius.circular(16)),
-      bgPaint,
-    );
+    canvas.drawRRect(strikeRect, fillPaint);
 
-    // Box border (dashed or elegant viewfinder brackets)
     final borderPaint = Paint()
-      ..color = (feedback.inStrikeZone
-              ? const Color(0xFF10B981)
-              : const Color(0xFF06B6D4))
-          .withValues(alpha: 0.6)
+      ..color = zoneColor.withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 2.5;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(strikeRect, const Radius.circular(16)),
-      borderPaint,
-    );
+    _drawDashedRRect(canvas, strikeRect, borderPaint);
 
-    // Corner brackets
-    final cornerLength = (strikeRect.width * 0.18).clamp(16.0, 32.0);
-    final cornerPaint = Paint()
-      ..color = feedback.inStrikeZone
-          ? const Color(0xFF10B981)
-          : const Color(0xFF38BDF8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5;
-
-    // Top-left
-    canvas.drawLine(strikeRect.topLeft, strikeRect.topLeft + Offset(cornerLength, 0), cornerPaint);
-    canvas.drawLine(strikeRect.topLeft, strikeRect.topLeft + Offset(0, cornerLength), cornerPaint);
-
-    // Top-right
-    canvas.drawLine(strikeRect.topRight, strikeRect.topRight + Offset(-cornerLength, 0), cornerPaint);
-    canvas.drawLine(strikeRect.topRight, strikeRect.topRight + Offset(0, cornerLength), cornerPaint);
-
-    // Bottom-left
-    canvas.drawLine(strikeRect.bottomLeft, strikeRect.bottomLeft + Offset(cornerLength, 0), cornerPaint);
-    canvas.drawLine(strikeRect.bottomLeft, strikeRect.bottomLeft + Offset(0, -cornerLength), cornerPaint);
-
-    // Bottom-right
-    canvas.drawLine(strikeRect.bottomRight, strikeRect.bottomRight + Offset(-cornerLength, 0), cornerPaint);
-    canvas.drawLine(strikeRect.bottomRight, strikeRect.bottomRight + Offset(0, -cornerLength), cornerPaint);
-
-    // Draw label
-    const textStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 10,
-      fontWeight: FontWeight.bold,
-      letterSpacing: 0.5,
-    );
+    // Text Label: "Duolingo Strike Zone"
     final textSpan = TextSpan(
-      text: 'STRIKE ZONE (Dada - Pinggang)',
-      style: textStyle,
+      text: isGood ? '✓ STRIKE ZONE IDEAL' : 'AREA GESTUR TANGAN',
+      style: TextStyle(
+        color: zoneColor,
+        fontSize: 11,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.8,
+      ),
     );
     final textPainter = TextPainter(
       text: textSpan,
@@ -271,34 +239,61 @@ class _StrikeZonePainter extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(strikeRect.left + 12, strikeRect.top + 8),
+      Offset(left + 12, top + 10),
     );
 
-    // Draw wrists if detected
-    _drawWrist(canvas, size, feedback.leftWristNormalized);
-    _drawWrist(canvas, size, feedback.rightWristNormalized);
+    // Render Hand Points if detected
+    final handPaint = Paint()
+      ..color = isGood ? AppColors.green : AppColors.orange
+      ..style = PaintingStyle.fill;
+
+    final handBorder = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+
+    if (feedback.leftWristNormalized != null) {
+      final point = _mapPoint(feedback.leftWristNormalized!, size);
+      canvas.drawCircle(point, 9, handPaint);
+      canvas.drawCircle(point, 9, handBorder);
+    }
+
+    if (feedback.rightWristNormalized != null) {
+      final point = _mapPoint(feedback.rightWristNormalized!, size);
+      canvas.drawCircle(point, 9, handPaint);
+      canvas.drawCircle(point, 9, handBorder);
+    }
   }
 
-  void _drawWrist(Canvas canvas, Size size, Offset? wristNorm) {
-    if (wristNorm == null) return;
-    double x = wristNorm.dx * size.width;
-    double y = wristNorm.dy * size.height;
+  Offset _mapPoint(Offset normalized, Size size) {
+    // Camera coordinates mapping (front camera mirrored)
+    double x = normalized.dx * size.width;
+    double y = normalized.dy * size.height;
 
     if (isFrontCamera) {
       x = size.width - x;
     }
+    return Offset(x, y);
+  }
 
-    final wristPoint = Offset(x, y);
+  void _drawDashedRRect(Canvas canvas, RRect rrect, Paint paint) {
+    final path = Path()..addRRect(rrect);
+    final pathMetrics = path.computeMetrics();
 
-    final dotGlow = Paint()
-      ..color = const Color(0xFF38BDF8).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(wristPoint, 10, dotGlow);
+    for (final metric in pathMetrics) {
+      double distance = 0.0;
+      const dashWidth = 8.0;
+      const dashSpace = 5.0;
 
-    final dotCore = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(wristPoint, 4, dotCore);
+      while (distance < metric.length) {
+        final len = (distance + dashWidth < metric.length)
+            ? dashWidth
+            : metric.length - distance;
+        final extract = metric.extractPath(distance, distance + len);
+        canvas.drawPath(extract, paint);
+        distance += dashWidth + dashSpace;
+      }
+    }
   }
 
   @override

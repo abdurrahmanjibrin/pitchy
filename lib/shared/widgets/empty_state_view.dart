@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import 'duo_button.dart';
 
 class EmptyStateView extends StatelessWidget {
   final IconData icon;
@@ -21,19 +22,27 @@ class EmptyStateView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColors.greenSoft,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.surfaceBorder),
+                border: Border.all(color: AppColors.green, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.greenDark.withValues(alpha: 0.2),
+                    offset: const Offset(0, 4),
+                    blurRadius: 0,
+                  ),
+                ],
               ),
-              child: Icon(icon, size: 48, color: AppColors.secondary),
+              child: Icon(icon, size: 44, color: AppColors.greenDark),
             ),
             const SizedBox(height: 20),
             Text(
@@ -42,7 +51,7 @@ class EmptyStateView extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 8),
@@ -51,19 +60,20 @@ class EmptyStateView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 14,
+                fontSize: 13,
                 height: 1.4,
+                fontWeight: FontWeight.w500,
               ),
             ),
             if (buttonText != null && onAction != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton.icon(
+              DuoButton(
+                text: buttonText!,
+                icon: Icons.add_rounded,
                 onPressed: onAction,
-                icon: const Icon(Icons.add_rounded),
-                label: Text(buttonText!),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(180, 48),
-                ),
+                color: DuoButtonColor.green,
+                isFullWidth: false,
+                height: 48,
               ),
             ],
           ],
@@ -72,4 +82,3 @@ class EmptyStateView extends StatelessWidget {
     );
   }
 }
-

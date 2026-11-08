@@ -13,6 +13,9 @@ import '../../data/models/body_language_evaluation.dart';
 import '../../services/recording/audio_recording_service.dart';
 import '../../services/vision/body_language_analyzer.dart';
 import '../../shared/widgets/audio_waveform_widget.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
 import 'post_recording_preview_screen.dart';
 import 'widgets/body_language_hud_overlay.dart';
 
@@ -111,7 +114,7 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
           }
         } catch (camErr) {
           debugPrint('Camera/Vision init fallback: $camErr');
-          // If camera fails, continue with high-quality audio recording fallback
+          // Fallback to high quality audio
         }
       }
 
@@ -169,34 +172,34 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
     final recordingService = ref.read(audioRecordingServiceProvider);
     if (_stateData.isPaused) {
       await recordingService.resumeRecording();
+      _bodyLanguageAnalyzer?.resumeSession();
     } else {
       await recordingService.pauseRecording();
+      _bodyLanguageAnalyzer?.pauseSession();
     }
   }
 
   Future<void> _stopRecording() async {
     final recordingService = ref.read(audioRecordingServiceProvider);
-    final recordedPath = await recordingService.stopRecording();
     final actualSeconds = _stateData.durationSeconds;
 
-    if (!mounted) return;
-
-    if (actualSeconds < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Durasi rekaman terlalu singkat (minimal 3 detik untuk analisis).',
-          ),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
+    // Stop and finalize body language analysis
     BodyLanguageEvaluation? bodyEval;
     if (_bodyLanguageAnalyzer != null) {
-      bodyEval = _bodyLanguageAnalyzer!.finishEvaluation();
+      bodyEval = _bodyLanguageAnalyzer!.finalizeSession(
+        actualDurationSeconds: actualSeconds,
+      );
     }
+
+    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+      try {
+        await _cameraController!.stopImageStream();
+      } catch (_) {}
+    }
+
+    final recordedPath = await recordingService.stopRecording();
+
+    if (!mounted) return;
 
     if (recordedPath != null) {
       Navigator.of(context).pushReplacement(
@@ -215,20 +218,49 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Batalkan Latihan?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: AppColors.border, width: 2),
+        ),
+        title: Row(
+          children: const [
+            DuoMascotAvatar(size: 32),
+            SizedBox(width: 10),
+            Text(
+              'Batalkan Latihan?',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
         content: const Text(
-          'Rekaman saat ini akan dihapus dan sesi latihan tidak akan disimpan.',
+          'Rekaman saat ini akan dibatalkan dan tidak akan tersimpan di riwayat latihanmu.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Lanjutkan Rekam'),
+            child: const Text(
+              'Lanjutkan Rekam',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          ElevatedButton(
+          DuoButton(
+            text: 'BATALKAN',
+            variant: DuoButtonVariant.red,
+            height: 42,
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Batalkan'),
           ),
         ],
       ),
@@ -266,17 +298,27 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
 
     if (_isInitializing) {
       return Scaffold(
+        backgroundColor: AppColors.background,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: AppColors.primary),
-              const SizedBox(height: 16),
+              const DuoMascotAvatar(size: 72),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 18),
               Text(
                 setup.recordingType == 'video'
-                    ? 'Menyiapkan kamera & model AI postur...'
-                    : 'Menyiapkan mikrofon...',
-                style: const TextStyle(color: AppColors.textSecondary),
+                    ? 'Menyiapkan kamera & AI gerakan tubuh...'
+                    : 'Menyiapkan mikrofon studio...',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -286,6 +328,7 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
 
     if (_initError != null) {
       return Scaffold(
+        backgroundColor: AppColors.background,
         appBar: AppBar(title: const Text('Perekaman Gagal')),
         body: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -295,15 +338,16 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
               const Icon(
                 Icons.mic_off_rounded,
                 size: 64,
-                color: AppColors.error,
+                color: AppColors.red,
               ),
               const SizedBox(height: 20),
               const Text(
                 'Tidak Dapat Mengakses Perangkat Rekam',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 10),
@@ -316,7 +360,9 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              ElevatedButton(
+              DuoButton(
+                text: 'COBA LAGI',
+                variant: DuoButtonVariant.green,
                 onPressed: () {
                   setState(() {
                     _isInitializing = true;
@@ -324,12 +370,12 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                   });
                   _startRecordingSession();
                 },
-                child: const Text('Coba Lagi'),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
+              DuoButton(
+                text: 'KEMBALI',
+                variant: DuoButtonVariant.white,
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Kembali'),
               ),
             ],
           ),
@@ -346,13 +392,23 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
         await _cancelRecording();
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: isVideo ? Colors.black : AppColors.background,
         appBar: AppBar(
-          backgroundColor: isVideo ? Colors.black54 : AppColors.surface,
+          backgroundColor: isVideo ? Colors.black54 : Colors.white,
           elevation: 0,
-          title: Text(setup.title),
+          title: Text(
+            setup.title,
+            style: TextStyle(
+              color: isVideo ? Colors.white : AppColors.textPrimary,
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+            ),
+          ),
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded),
+            icon: Icon(
+              Icons.close_rounded,
+              color: isVideo ? Colors.white : AppColors.textPrimary,
+            ),
             tooltip: 'Batalkan sesi',
             onPressed: _cancelRecording,
           ),
@@ -361,9 +417,9 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
               IconButton(
                 icon: Icon(
                   _showBriefSheet
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: AppColors.secondary,
+                      ? Icons.menu_book_rounded
+                      : Icons.menu_book_outlined,
+                  color: isVideo ? AppColors.yellow : AppColors.blue,
                 ),
                 tooltip: 'Lihat brief tantangan',
                 onPressed: () {
@@ -378,7 +434,7 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Background: Camera Preview or Audio Atmosphere
+              // 1. Background: Camera Preview or Duolingo Light Canvas
               if (isVideo) ...[
                 Positioned.fill(
                   child: AspectRatio(
@@ -386,7 +442,6 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                     child: CameraPreview(_cameraController!),
                   ),
                 ),
-                // Live AI Body Language HUD Overlay
                 Positioned.fill(
                   child: BodyLanguageHudOverlay(
                     feedback: _liveFeedback,
@@ -394,50 +449,40 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                         CameraLensDirection.front,
                   ),
                 ),
-              ] else ...[
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.background, AppColors.surface],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
               ],
 
               // 2. Foreground Overlays & Controls
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   children: [
-                    // Collapsible Floating Brief Reminder
+                    // Collapsible Brief Reminder
                     if (_showBriefSheet && challenge != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withValues(alpha: 0.90),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.5),
-                          ),
-                        ),
+                      DuoCard(
+                        borderWidth: 2,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Pengingat Brief Tantangan',
-                                  style: TextStyle(
-                                    color: AppColors.secondary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Row(
+                                  children: const [
+                                    Icon(
+                                      Icons.lightbulb_rounded,
+                                      color: AppColors.yellow,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Pengingat Brief Tantangan',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 InkWell(
                                   onTap: () =>
@@ -456,13 +501,13 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: AppColors.textPrimary,
+                                color: AppColors.textSecondary,
                                 fontSize: 12,
                                 height: 1.3,
                               ),
                             ),
                             if (challenge.requiredWords.isNotEmpty) ...[
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                               Wrap(
                                 spacing: 6,
                                 runSpacing: 4,
@@ -470,23 +515,22 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                                   return Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
-                                      vertical: 2,
+                                      vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceCard,
+                                      color: AppColors.blue.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: AppColors.secondary.withValues(
-                                          alpha: 0.4,
-                                        ),
+                                        color: AppColors.blue,
+                                        width: 1.5,
                                       ),
                                     ),
                                     child: Text(
                                       w,
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.blueDark,
                                         fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w900,
                                       ),
                                     ),
                                   );
@@ -506,11 +550,25 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        borderRadius: BorderRadius.circular(12),
+                        color: isVideo
+                            ? Colors.black.withValues(alpha: 0.65)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: isVideo
+                              ? Colors.white.withValues(alpha: 0.2)
+                              : AppColors.border,
+                          width: 2,
                         ),
+                        boxShadow: isVideo
+                            ? null
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -523,8 +581,8 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: _stateData.isPaused
-                                      ? AppColors.warning
-                                      : AppColors.error,
+                                      ? AppColors.yellow
+                                      : AppColors.red,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -532,10 +590,12 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                                 _stateData.isPaused ? 'JEDA' : 'MEREKAM',
                                 style: TextStyle(
                                   color: _stateData.isPaused
-                                      ? AppColors.warning
-                                      : AppColors.error,
+                                      ? (isVideo
+                                          ? AppColors.yellow
+                                          : AppColors.orangeDark)
+                                      : AppColors.red,
                                   fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                   letterSpacing: 0.8,
                                 ),
                               ),
@@ -547,17 +607,22 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                             ),
                             style: TextStyle(
                               color: isOverTarget
-                                  ? AppColors.warning
-                                  : Colors.white,
+                                  ? AppColors.orange
+                                  : (isVideo
+                                      ? Colors.white
+                                      : AppColors.textPrimary),
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                           Text(
                             'Target: ${Formatters.formatSecondsToMinutesSeconds(targetSeconds)}',
-                            style: const TextStyle(
-                              color: Colors.white70,
+                            style: TextStyle(
+                              color: isVideo
+                                  ? Colors.white70
+                                  : AppColors.textSecondary,
                               fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -566,18 +631,27 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
 
                     const Spacer(),
 
-                    // If Audio-only mode: render big timer & waveform centered
+                    // If Audio-only mode: Duolingo Coach Atmosphere
                     if (!isVideo) ...[
+                      DuoMascotAvatar(
+                        size: 96,
+                        speechText: _stateData.isPaused
+                            ? 'Latihan dijeda! Tekan tombol play untuk lanjut.'
+                            : isOverTarget
+                                ? 'Target durasi tercapai! Boleh rangkum poinmu.'
+                                : 'Pitchy mendengarkanmu, bicaralah dengan santai!',
+                      ),
+                      const SizedBox(height: 20),
                       Text(
                         Formatters.formatSecondsToMinutesSeconds(
                           _stateData.durationSeconds,
                         ),
                         style: TextStyle(
                           color: isOverTarget
-                              ? AppColors.warning
+                              ? AppColors.orange
                               : AppColors.textPrimary,
                           fontSize: 64,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                           letterSpacing: -1.5,
                         ),
                       ),
@@ -585,12 +659,12 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                         const Text(
                           'Melebihi target durasi',
                           style: TextStyle(
-                            color: AppColors.warning,
+                            color: AppColors.orangeDark,
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
                       AudioWaveformWidget(
                         amplitude: _stateData.currentAmplitude,
                         isRecording: _stateData.isRecording,
@@ -599,58 +673,87 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                       const Spacer(),
                     ],
 
-                    // Bottom Floating Control Bar
+                    // Bottom Duolingo Tactile Control Bar
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.70),
-                        borderRadius: BorderRadius.circular(24),
+                        color: isVideo
+                            ? Colors.black.withValues(alpha: 0.75)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: isVideo
+                              ? Colors.white.withValues(alpha: 0.2)
+                              : AppColors.border,
+                          width: 2,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          // Pause / Resume
-                          IconButton(
-                            icon: Icon(
-                              _stateData.isPaused
-                                  ? Icons.play_arrow_rounded
-                                  : Icons.pause_rounded,
-                              color: Colors.white,
-                              size: 30,
+                          // Pause / Resume Tactile Button
+                          InkWell(
+                            onTap: _togglePauseResume,
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: isVideo
+                                    ? Colors.white12
+                                    : AppColors.background,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isVideo
+                                      ? Colors.white24
+                                      : AppColors.border,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                _stateData.isPaused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                color: isVideo
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                size: 28,
+                              ),
                             ),
-                            onPressed: _togglePauseResume,
                           ),
 
-                          // Big Stop Recording Button
+                          // Signature Duolingo 3D Red Stop Button
                           GestureDetector(
                             onTap: _stopRecording,
                             child: Container(
-                              width: 64,
-                              height: 64,
+                              width: 68,
+                              height: 68,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [AppColors.error, Color(0xFFDC2626)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                                color: AppColors.red,
                                 shape: BoxShape.circle,
-                                boxShadow: [
+                                border: Border.all(color: Colors.white38, width: 2),
+                                boxShadow: const [
                                   BoxShadow(
-                                    color:
-                                        AppColors.error.withValues(alpha: 0.4),
-                                    blurRadius: 16,
-                                    spreadRadius: 2,
+                                    color: AppColors.redDark,
+                                    offset: Offset(0, 5),
+                                    blurRadius: 0,
                                   ),
                                 ],
                               ),
                               child: const Center(
                                 child: Icon(
                                   Icons.stop_rounded,
-                                  size: 34,
+                                  size: 38,
                                   color: Colors.white,
                                 ),
                               ),
@@ -658,26 +761,48 @@ class _RecordingStudioScreenState extends ConsumerState<RecordingStudioScreen> {
                           ),
 
                           // Brief Sheet Toggle
-                          IconButton(
-                            icon: const Icon(
-                              Icons.menu_book_rounded,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                            tooltip: 'Buka Brief',
-                            onPressed: () {
+                          InkWell(
+                            onTap: () {
                               setState(() {
                                 _showBriefSheet = !_showBriefSheet;
                               });
                             },
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: isVideo
+                                    ? Colors.white12
+                                    : AppColors.background,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isVideo
+                                      ? Colors.white24
+                                      : AppColors.border,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.menu_book_rounded,
+                                color: isVideo
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                size: 24,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Tekan tombol kotak merah setelah kamu selesai berpidato',
-                      style: TextStyle(color: Colors.white60, fontSize: 11),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Tekan tombol merah jika sudah selesai pitching',
+                      style: TextStyle(
+                        color: isVideo ? Colors.white70 : AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),

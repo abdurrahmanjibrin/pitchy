@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
+import '../../shared/widgets/duo_mascot_avatar.dart';
 import '../onboarding/onboarding_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -44,8 +47,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Nama panggilan berhasil diperbarui.'),
-            backgroundColor: AppColors.success,
+            content: Text('Nama panggilan berhasil diperbarui!'),
+            backgroundColor: AppColors.greenDark,
           ),
         );
         setState(() {});
@@ -65,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Konfigurasi API Key tersimpan.'),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.greenDark,
         ),
       );
     }
@@ -112,20 +115,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Hapus Seluruh Data Latihan?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: AppColors.border, width: 2),
+        ),
+        title: const Text(
+          'Hapus Seluruh Data Latihan?',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
         content: const Text(
           'Tindakan ini akan menghapus seluruh rekaman suara, riwayat latihan, dan laporan evaluasi dari penyimpanan lokal perangkat.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Batal'),
+            child: const Text(
+              'Batal',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          ElevatedButton(
+          DuoButton(
+            text: 'HAPUS SEMUA DATA',
+            variant: DuoButtonVariant.red,
+            height: 42,
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Hapus Semua Data'),
           ),
         ],
       ),
@@ -142,7 +166,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Seluruh data latihan lokal berhasil dibersihkan.'),
-            backgroundColor: AppColors.success,
+            backgroundColor: AppColors.greenDark,
           ),
         );
       }
@@ -164,30 +188,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil & Pengaturan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Profil & Pengaturan'),
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           children: [
-            // Profile Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.surfaceBorder),
-              ),
+            // User Profile Hero DuoCard
+            DuoCard(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Nama Panggilan',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      const DuoMascotAvatar(size: 58),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _nameController.text.isNotEmpty
+                                  ? _nameController.text
+                                  : 'Pitcher Hebat',
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Pelajar Pitching Aktif • Level 1',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 14),
+                  const Divider(color: AppColors.border),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -197,35 +243,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           decoration: const InputDecoration(
                             prefixIcon: Icon(
                               Icons.person_outline_rounded,
-                              color: AppColors.secondary,
+                              color: AppColors.blue,
                             ),
-                            hintText: 'Nama panggilan',
+                            hintText: 'Nama panggilan kamu',
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      ElevatedButton(
+                      DuoButton(
+                        text: 'SIMPAN',
+                        variant: DuoButtonVariant.green,
+                        height: 48,
                         onPressed: _saveName,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(80, 50),
-                        ),
-                        child: const Text('Simpan'),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
-            // AI & Speech-to-Text Settings
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.surfaceBorder),
-              ),
+            // AI & Speech-to-Text Settings DuoCard
+            DuoCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -233,68 +272,60 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     children: const [
                       Icon(
                         Icons.auto_awesome_rounded,
-                        color: AppColors.secondary,
-                        size: 20,
+                        color: AppColors.yellow,
+                        size: 22,
                       ),
                       SizedBox(width: 8),
                       Text(
                         'Konfigurasi AI Coach & STT',
                         style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   const Text(
                     'PITCHY menggunakan Gemini 2.5 Flash untuk transkripsi Bahasa Indonesia yang presisi dan evaluasi semantik.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       height: 1.4,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextField(
                     controller: _apiKeyController,
                     obscureText: true,
                     decoration: const InputDecoration(
                       prefixIcon: Icon(
                         Icons.key_rounded,
-                        color: AppColors.secondary,
+                        color: AppColors.blue,
                       ),
                       hintText: 'Gemini API Key (Opsional / Override)',
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: DuoButton(
+                          text: _isTestingApiKey ? 'MENGUJI...' : 'UJI KONEKSI',
+                          variant: DuoButtonVariant.white,
+                          height: 44,
                           onPressed: _isTestingApiKey ? null : _testApiKey,
-                          icon: _isTestingApiKey
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.secondary,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.wifi_tethering_rounded,
-                                  size: 18,
-                                ),
-                          label: const Text('Uji Koneksi'),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: ElevatedButton(
+                        child: DuoButton(
+                          text: 'SIMPAN KEY',
+                          variant: DuoButtonVariant.blue,
+                          height: 44,
                           onPressed: _saveApiKey,
-                          child: const Text('Simpan Key'),
                         ),
                       ),
                     ],
@@ -305,13 +336,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       _testResult!,
                       style: TextStyle(
                         color: _testResult!.contains('Berhasil')
-                            ? AppColors.success
-                            : AppColors.error,
+                            ? AppColors.greenDark
+                            : AppColors.red,
                         fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
-                  const Divider(height: 24),
+                  const SizedBox(height: 14),
+                  const Divider(color: AppColors.border),
+                  const SizedBox(height: 6),
 
                   // Offline Mock Toggle
                   SwitchListTile(
@@ -321,18 +355,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     subtitle: const Text(
                       'Gunakan generator transkrip lokal untuk demo saat tidak ada internet.',
                       style: TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppColors.textSecondary,
                         fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     value: _useOfflineMock,
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: AppColors.green,
+                    activeTrackColor: AppColors.green.withValues(alpha: 0.4),
                     onChanged: (val) async {
                       setState(() => _useOfflineMock = val);
                       final userRepo = ref.read(userRepositoryProvider);
@@ -342,24 +378,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
-            // Privacy & Architecture Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.surfaceBorder),
-              ),
+            // Privacy & Architecture DuoCard
+            DuoCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: const [
                       Icon(
-                        Icons.privacy_tip_outlined,
-                        color: AppColors.secondary,
+                        Icons.privacy_tip_rounded,
+                        color: AppColors.green,
                         size: 20,
                       ),
                       SizedBox(width: 8),
@@ -368,7 +398,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
@@ -382,56 +412,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       height: 1.5,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
-            // Danger Zone
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.3),
-                ),
-              ),
+            // Danger Zone DuoCard
+            DuoCard(
+              borderColor: AppColors.red,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Zona Pengelolaan Data',
                     style: TextStyle(
-                      color: AppColors.error,
+                      color: AppColors.red,
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
+                  DuoButton(
+                    text: 'HAPUS SEMUA DATA LATIHAN',
+                    icon: Icons.delete_forever_rounded,
+                    variant: DuoButtonVariant.red,
+                    height: 46,
                     onPressed: _clearAllData,
-                    icon: const Icon(
-                      Icons.delete_forever_rounded,
-                      color: AppColors.error,
-                    ),
-                    label: const Text(
-                      'Hapus Semua Data Sesi Latihan',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(
-                        color: AppColors.error.withValues(alpha: 0.5),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 10),
-                  TextButton.icon(
+                  DuoButton(
+                    text: 'BUKA ULANG PENGENALAN',
+                    icon: Icons.restart_alt_rounded,
+                    variant: DuoButtonVariant.white,
+                    height: 44,
                     onPressed: _resetOnboarding,
-                    icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                    label: const Text('Buka Ulang Pengenalan (Onboarding)'),
                   ),
                 ],
               ),

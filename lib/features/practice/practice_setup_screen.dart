@@ -5,6 +5,8 @@ import '../../core/constants/app_constants.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/challenge_item.dart';
+import '../../shared/widgets/duo_button.dart';
+import '../../shared/widgets/duo_card.dart';
 import 'challenge_brief_screen.dart';
 import 'preparation_screen.dart';
 
@@ -49,9 +51,7 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
       );
     }
 
-    ref
-        .read(activePracticeSetupProvider.notifier)
-        .setSetup(
+    ref.read(activePracticeSetupProvider.notifier).setSetup(
           ActivePracticeSetup(
             title: _titleController.text.trim(),
             topic: _topicController.text.trim().isNotEmpty
@@ -83,7 +83,8 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pengaturan Latihan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('PENGATURAN LATIHAN')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -92,64 +93,42 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
             children: [
               // Title Field
               const Text(
-                'Judul Latihan',
+                'JUDUL SESI LATIHAN',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Misal: Latihan Pitching Startup',
+                  prefixIcon: Icon(Icons.edit_note_rounded, color: AppColors.blue),
+                ),
                 validator: (val) {
-                  if (val == null || val.trim().length < 3) {
-                    return 'Judul minimal 3 karakter';
-                  }
-                  if (val.trim().length > 60) {
-                    return 'Judul maksimal 60 karakter';
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Judul latihan tidak boleh kosong';
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  hintText: 'Contoh: Pitching Startup Inovasi',
-                  prefixIcon: Icon(
-                    Icons.title_rounded,
-                    color: AppColors.secondary,
-                  ),
-                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
-              // Topic Field (Optional)
+              // Mode Practice Selection
               const Text(
-                'Topik / Konteks (Opsional)',
+                'PILIH MODE LATIHAN',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _topicController,
-                decoration: const InputDecoration(
-                  hintText: 'Contoh: Pengelolaan sampah cerdas di fakultas',
-                  prefixIcon: Icon(
-                    Icons.category_outlined,
-                    color: AppColors.secondary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Practice Mode Selector
-              const Text(
-                'Pilih Mode Latihan',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 10),
@@ -157,10 +136,11 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                 children: [
                   Expanded(
                     child: _buildChoiceChip(
-                      label: 'Challenge',
+                      label: 'Tantangan',
                       isSelected: _mode == 'challenge',
                       onTap: () => setState(() => _mode = 'challenge'),
                       icon: Icons.bolt_rounded,
+                      color: AppColors.purple,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -169,7 +149,8 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                       label: 'Bebas',
                       isSelected: _mode == 'free',
                       onTap: () => setState(() => _mode = 'free'),
-                      icon: Icons.mic_rounded,
+                      icon: Icons.mic_none_rounded,
+                      color: AppColors.blue,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -179,53 +160,59 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                       isSelected: _mode == 'timed',
                       onTap: () => setState(() => _mode = 'timed'),
                       icon: Icons.timer_outlined,
+                      color: AppColors.green,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
-              // Challenge Subtype (if mode == challenge)
+              // Specific Challenge Types
               if (_mode == 'challenge') ...[
                 const Text(
-                  'Tipe Tantangan Pitching',
+                  'JENIS TANTANGAN SPONTAN',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 10),
                 _buildChallengeTypeCard(
                   type: 'random_words',
-                  title: 'Random Words Pitch',
-                  desc: 'Selipkan 3–5 kata acak yang wajib digunakan secara alami.',
-                  icon: Icons.text_fields_rounded,
+                  title: 'Kata Wajib Acak',
+                  desc: 'Selipkan 3–5 kata tak terduga secara alami ke dalam argumen pitch.',
+                  icon: Icons.spellcheck_rounded,
+                  color: AppColors.purple,
                 ),
                 const SizedBox(height: 10),
                 _buildChallengeTypeCard(
                   type: 'random_theme',
-                  title: 'Random Theme Pitch',
-                  desc: 'Hadapi masalah/tema spontan dengan instruksi terarah.',
-                  icon: Icons.lightbulb_outline_rounded,
+                  title: 'Tema Pitch Acak',
+                  desc: 'Dapatkan tema/masalah mendadak dan bangun solusi dalam hitungan detik.',
+                  icon: Icons.lightbulb_rounded,
+                  color: AppColors.blue,
                 ),
                 const SizedBox(height: 10),
                 _buildChallengeTypeCard(
                   type: 'audience_scenario',
-                  title: 'Audience Scenario Pitch',
-                  desc: 'Sesuaikan bahasa dan penekanan ide sesuai profil audiens.',
-                  icon: Icons.people_outline_rounded,
+                  title: 'Skenario Audiens Tertentu',
+                  desc: 'Sesuaikan nada bicaramu dengan Investor, Dosen Penguji, atau Mahasiswa Baru.',
+                  icon: Icons.groups_rounded,
+                  color: AppColors.orange,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 22),
               ],
 
-              // Preparation Time Selector
+              // Preparation Duration
               const Text(
-                'Waktu Persiapan Sebelum Rekam',
+                'WAKTU PERSIAPAN SEBELUM BICARA',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 10),
@@ -235,23 +222,25 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: _buildChoiceChip(
-                        label: '$sec detik',
+                        label: '$sec dtk',
                         isSelected: _preparationSeconds == sec,
                         onTap: () => setState(() => _preparationSeconds = sec),
+                        color: AppColors.blue,
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               // Target Pitch Duration
               const Text(
-                'Target Durasi Pitch',
+                'TARGET DURASI PITCH',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 10),
@@ -266,38 +255,41 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                         isSelected: _targetDurationSeconds == sec,
                         onTap: () =>
                             setState(() => _targetDurationSeconds = sec),
+                        color: AppColors.green,
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               // Recording Format (Audio vs Video + Body Language)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Format Sesi Rekaman',
+                    'FORMAT SESI REKAMAN',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.2),
+                      color: AppColors.greenSoft,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.green, width: 1.5),
                     ),
                     child: const Text(
-                      'AI Vision On-Device',
+                      'AI ON-DEVICE',
                       style: TextStyle(
-                        color: AppColors.secondary,
+                        color: AppColors.greenDark,
                         fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -309,7 +301,7 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                   Expanded(
                     child: _buildFormatCard(
                       type: 'video',
-                      title: 'Video + Kamera AI',
+                      title: 'Video + AI Kamera',
                       subtitle: 'Analisis postur, gestur, kuda-kuda & tatapan',
                       icon: Icons.videocam_rounded,
                       isRecommended: true,
@@ -320,26 +312,25 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
                     child: _buildFormatCard(
                       type: 'audio',
                       title: 'Audio Saja',
-                      subtitle: 'Fokus vokal, WPM & kata filler',
+                      subtitle: 'Fokus vokal, WPM & kata pengisi',
                       icon: Icons.mic_rounded,
                       isRecommended: false,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // Next Button
-              ElevatedButton.icon(
+              // Next Button (Duolingo 3D Tactile Button)
+              DuoButton(
+                text: _mode == 'challenge'
+                    ? 'BUKA BRIEF TANTANGAN'
+                    : 'MULAI PERSIAPAN',
+                icon: Icons.arrow_forward_rounded,
+                color: DuoButtonColor.green,
                 onPressed: _onProceed,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text(
-                  _mode == 'challenge'
-                      ? 'Buka Brief Tantangan'
-                      : 'Mulai Persiapan',
-                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -352,46 +343,34 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
     required bool isSelected,
     required VoidCallback onTap,
     IconData? icon,
+    Color color = AppColors.green,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return DuoCard(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      backgroundColor: isSelected ? color.withValues(alpha: 0.12) : Colors.white,
+      borderColor: isSelected ? color : const Color(0xFFE5E5E5),
+      bottomBorderColor: isSelected ? color : const Color(0xFFE5E5E5),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.2)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected
-                    ? AppColors.secondary
-                    : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? color : AppColors.textSecondary,
             ),
+            const SizedBox(width: 4),
           ],
-        ),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? color : AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -401,88 +380,77 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
     required String title,
     required String desc,
     required IconData icon,
+    required Color color,
   }) {
     final isSelected = _challengeType == type;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
+    return DuoCard(
+      padding: const EdgeInsets.all(14),
+      backgroundColor: isSelected ? color.withValues(alpha: 0.08) : Colors.white,
+      borderColor: isSelected ? color : const Color(0xFFE5E5E5),
+      bottomBorderColor: isSelected ? color : const Color(0xFFE5E5E5),
       onTap: () => setState(() => _challengeType = type),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceElevated : AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
-            width: isSelected ? 1.5 : 1.0,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+            ),
+            child: Icon(icon, size: 24, color: color),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.2)
-                    : AppColors.surfaceCard,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: isSelected ? AppColors.secondary : AppColors.textMuted,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: isSelected ? color : AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    desc,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
-                  width: 2,
                 ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    )
-                  : null,
+                const SizedBox(height: 3),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.3,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? color : const Color(0xFFCCCCCC),
+                width: 2.5,
+              ),
+            ),
+            child: isSelected
+                ? Center(
+                    child: Container(
+                      width: 11,
+                      height: 11,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+        ],
       ),
     );
   }
@@ -495,82 +463,66 @@ class _PracticeSetupScreenState extends ConsumerState<PracticeSetupScreen> {
     required bool isRecommended,
   }) {
     final isSelected = _recordingType == type;
+    final color = isSelected ? AppColors.green : const Color(0xFFAFAFAF);
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
+    return DuoCard(
+      padding: const EdgeInsets.all(12),
+      backgroundColor: isSelected ? AppColors.greenSoft.withValues(alpha: 0.5) : Colors.white,
+      borderColor: isSelected ? AppColors.green : const Color(0xFFE5E5E5),
+      bottomBorderColor: isSelected ? AppColors.greenDark : const Color(0xFFE5E5E5),
       onTap: () => setState(() => _recordingType = type),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.surfaceBorder,
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.greenSoft : const Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+              if (isRecommended)
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.25)
-                        : AppColors.surfaceCard,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.yellowSoft,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.yellowDark, width: 1),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color:
-                        isSelected ? AppColors.secondary : AppColors.textMuted,
+                  child: const Text(
+                    'AI COACH',
+                    style: TextStyle(
+                      color: Color(0xFF4A3800),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-                if (isRecommended)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'AI Coach',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? AppColors.greenDark : AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
             ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              height: 1.25,
             ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 11,
-                height: 1.25,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
